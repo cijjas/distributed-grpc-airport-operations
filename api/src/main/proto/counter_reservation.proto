@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+// package service;
+
+import "airport_administration.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+
+// option java_package = "ar.edu.itba.pod.grpc";
+// option java_outer_classname = "ServiceModel";
+// option java_multiple_files = true;
+
+
+service CounterReservationService {
+  rpc ListSectors(google.protobuf.Empty) returns (ListSectorsResponse);
+  rpc ListCounters(ListCountersRequest) returns (ListCountersResponse);
+  rpc AssignCounters(AssignCountersRequest) returns (google.protobuf.StringValue);
+  rpc FreeCounters(FreeCountersRequest) returns (google.protobuf.StringValue);
+  rpc CheckinCounters(CheckinCountersRequest) returns (google.protobuf.StringValue);
+  rpc ListPendingAssignments(google.protobuf.StringValue) returns (ListPendingAssignmentsResponse); //No entendí bien
+}
+
+
+message ListSectorsResponse {
+  repeated Sector sectors = 1;
+}
+
+message ListCountersRequest {
+  string sector_name = 1;
+  int32 from = 2;
+  int32 to = 3;
+}
+
+message ListCountersResponse {
+  repeated Counter counters = 1;
+}
+
+message AssignCountersRequest {
+  string sector_name = 1;
+  int32 count_val = 2;
+  repeated string flight_codes = 3;
+  string airline_name = 4;
+}
+
+message FreeCountersRequest {
+  string sector_name = 1;
+  int32 from = 2;
+  string airline_name = 3;
+}
+
+message CheckinCountersRequest {
+  string sector_name = 1;
+  int32 from = 2;
+  string airline_name = 3;
+}
+
+// a checkear
+
+message ListPendingAssignmentsResponse {
+  repeated PendingAssignment pendingAssignments = 1;
+}
+
+message PendingAssignment {
+  string sectorName = 1;
+  int32 counterNumber = 2;
+  string airlineName = 3;
+  repeated string flightCodes = 4;
+}

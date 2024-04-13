@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+// package service;
+
+import "airport_administration.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+
+// option java_package = "ar.edu.itba.pod.grpc";
+// option java_outer_classname = "ServiceModel";
+// option java_multiple_files = true;
+
+service CheckinService {
+  rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
+  rpc PassengerCheckin(PassengerCheckinRequest) returns (google.protobuf.StringValue);
+  rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);
+}
+
+
+
+message FetchCounterResponse {
+  string sector_name = 1;
+  int32 counter_from = 2;
+  int32 counter_to = 3;
+  int32 people_in_line = 4;
+}
+
+message PassengerCheckinRequest {
+  string sector_name = 1;
+  int32 counter_from = 2;
+  string booking_code = 3;
+}
+
+message PassengerStatusResponse {
+  string sector_name = 1;
+  int32 counter_number = 2;
+  string message = 3;
+}
