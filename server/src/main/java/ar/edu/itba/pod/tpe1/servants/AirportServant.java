@@ -2,7 +2,7 @@ package ar.edu.itba.pod.tpe1.servants;
 
 
 import ar.edu.itba.pod.grpc.AddCountersRequest;
-import ar.edu.itba.pod.grpc.AddExpectedPassengersRequest;
+import ar.edu.itba.pod.grpc.ManifestRequest;
 import ar.edu.itba.pod.grpc.AirportAdminServiceGrpc;
 import ar.edu.itba.pod.grpc.StatusResponse;
 import ar.edu.itba.pod.tpe1.models.Booking;
@@ -10,6 +10,8 @@ import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+
+import java.util.jar.Manifest;
 
 public class AirportServant extends AirportAdminServiceGrpc.AirportAdminServiceImplBase {
 
@@ -44,17 +46,19 @@ public class AirportServant extends AirportAdminServiceGrpc.AirportAdminServiceI
         }
     }
 
+
+
     @Override
-    public StreamObserver<AddExpectedPassengersRequest> addExpectedPassengers(StreamObserver<StatusResponse> responseObserver) {
-        return new StreamObserver<AddExpectedPassengersRequest>() {
+    public StreamObserver<ManifestRequest> manifest(StreamObserver<StatusResponse> responseObserver) {
+        return new StreamObserver<ManifestRequest>() {
             @Override
-            public void onNext(AddExpectedPassengersRequest addExpectedPassengersRequest) {
+            public void onNext(ManifestRequest addExpectedPassengersRequest) {
                 try {
                     airportRepository.addPassenger(
                         new Booking(
-                            addExpectedPassengersRequest.getPassenger().getAirlineName(),
-                            addExpectedPassengersRequest.getPassenger().getFlightCode(),
-                            addExpectedPassengersRequest.getPassenger().getBookingCode()
+                            ManifestRequest.newBuilder().getPassenger().getAirlineName(),
+                            ManifestRequest.newBuilder().getPassenger().getFlightCode(),
+                            ManifestRequest.newBuilder().getPassenger().getBookingCode()
                         )
                     );
                 } catch (IllegalArgumentException e) {

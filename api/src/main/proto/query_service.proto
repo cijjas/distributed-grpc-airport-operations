@@ -7,7 +7,7 @@
 //
 //
 //option java_package = "ar.edu.itba.pod.grpc";
-//option java_outer_classname = "CounterQueryModel";
+//option java_outer_classname = "QueryServiceModel";
 //option java_multiple_files = true;
 //
 //

@@ -8,13 +8,13 @@ import "google/protobuf/empty.proto";
 
 
 option java_package = "ar.edu.itba.pod.grpc";
-option java_outer_classname = "AirportAdministrationModel";
+option java_outer_classname = "AdminServiceModel";
 option java_multiple_files = true;
 
 service AirportAdminService {
   rpc AddSector(google.protobuf.StringValue) returns (StatusResponse);
   rpc AddCounters(AddCountersRequest) returns (StatusResponse);
-  rpc AddExpectedPassengers(stream AddExpectedPassengersRequest) returns (stream StatusResponse);
+  rpc Manifest(stream ManifestRequest) returns (stream StatusResponse);
 }
 
 
@@ -29,7 +29,7 @@ message AddCountersRequest {
   int32 counter_count = 2;
 }
 
-message AddExpectedPassengersRequest {
+message ManifestRequest {
   BookingData passenger = 1;
 }
 
