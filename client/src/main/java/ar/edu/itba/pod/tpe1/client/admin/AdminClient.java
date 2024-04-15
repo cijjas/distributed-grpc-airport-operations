@@ -50,6 +50,8 @@ public class AdminClient {
                     logger.error("Input path is required for 'manifest' action.");
                 }
                 break;
+            default:
+                logger.error("No valid action selected.");
         }
     }
 

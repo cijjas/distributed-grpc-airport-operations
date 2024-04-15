@@ -1,19 +1,15 @@
-package ar.edu.itba.pod.tpe1.client.admin;
+package ar.edu.itba.pod.tpe1.client.query;
 
-
-import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.*;
 
-import java.nio.file.Paths;
 import java.util.Optional;
 
-public class AdminClientParser {
+public class QueryClientParser {
     Options options = new Options();
     private final CommandLineParser parser  = new GnuParser();
 
-    public AdminClientParser() {
+    public QueryClientParser() {
         // Required
-
         Option serverAddressOption = new Option("DserverAddress", true, "Server address");
         serverAddressOption.setRequired(true);
 
@@ -23,29 +19,27 @@ public class AdminClientParser {
         options.addOption(actionOption);
         options.addOption(serverAddressOption);
         // Options
-        options.addOption("Dsector","Dsector",  true, "Sector name");
-        options.addOption("Dcounters","Dcounters",  true, "Counter count");
-        options.addOption("DinPath","DinPath",  true, "Manifest path");
+        options.addOption("Dsector",true, "Sector name");
+        options.addOption("Dcounter",true, "Counter value");
+        options.addOption("Dairline",true, "Airline name");
     }
 
 
-    public Optional<AdminClientArguments> getAdminClientArguments(String[] args) {
+    public Optional<QueryClientArguments> getEventsClientArguments(String[] args) {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            AdminClientArguments arguments = new AdminClientArguments();
+            QueryClientArguments arguments = new QueryClientArguments();
             // Server address
             arguments.setServerAddress(cmd.getOptionValue("DserverAddress"));
             // Action
-            arguments.setAction(AdminClientAction.valueOf(cmd.getOptionValue("Daction").toUpperCase()));
+            arguments.setAction(QueryClientAction.valueOf(cmd.getOptionValue("Daction").toUpperCase()));
             // Sector
             arguments.setSector(cmd.getOptionValue("Dsector"));
-            // Counters
-            String countersValue = cmd.getOptionValue("Dcounters");
-            arguments.setCounters(countersValue != null ? Integer.parseInt(countersValue) : null);
-            // Manifest path
-            String inPathValue = cmd.getOptionValue("DinPath");
-            arguments.setInPath(inPathValue != null ? Paths.get(inPathValue) : null);
+            // Counter
+            arguments.setCounterValue(Integer.parseInt(cmd.getOptionValue("Dcounter")));
+            // Airline
+            arguments.setAirline(cmd.getOptionValue("Dairline"));
 
             return Optional.of(arguments);
         } catch (ParseException e) {
@@ -53,8 +47,5 @@ public class AdminClientParser {
             return Optional.empty();
         }
     }
-
-
-
 
 }
