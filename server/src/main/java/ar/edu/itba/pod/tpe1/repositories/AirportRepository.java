@@ -22,7 +22,6 @@ public class AirportRepository {
     }
 
     public synchronized void addSector(String sectorName) {
-        System.out.println("Adding sector " + sectorName);
         if (countersInSectorsMap.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector name already exists");
         }
