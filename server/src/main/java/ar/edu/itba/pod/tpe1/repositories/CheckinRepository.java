@@ -21,8 +21,8 @@ public class CheckinRepository {
         this.pendingPassengers = new LinkedList<>();
     }
 
-    public synchronized void addPassangerToQueue(Booking passanger){
-        pendingPassengers.add(passanger);
+    public synchronized void addPassengerToQueue(Booking passenger){
+        pendingPassengers.add(passenger);
     }
 
     public synchronized void addFlightCode(String flightCode){
