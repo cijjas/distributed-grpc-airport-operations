@@ -53,9 +53,9 @@ public class AirportRepository {
     public synchronized void addPassenger(Booking booking) {
         if (expectedPassengerList.stream().anyMatch(b -> booking.getBookingCode().equals(b.getBookingCode())))
             throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
-        if (expectedPassengerList.stream().anyMatch(b -> booking.getFlightCode().equals(b.getFlightCode())
-                                                        && !booking.getAirlineName().equals(b.getAirlineName())))
-            throw new IllegalArgumentException("Flight with code" + booking.getFlightCode() + " is already assigned to another airline");
+        if (expectedPassengerList.stream().anyMatch(b -> booking.getFlightCode().equals(b.getFlightCode()) && !booking.getAirlineName().equals(b.getAirlineName()))){
+            throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
+        }
 
         expectedPassengerList.add(booking);
     }

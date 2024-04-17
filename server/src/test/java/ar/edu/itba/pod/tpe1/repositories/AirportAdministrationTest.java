@@ -94,6 +94,6 @@ class AirportAdministrationTest {
                 () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
                 "Expected IllegalArgumentException because flight is already assigned to other airline");
 
-        assertTrue(exception.getMessage().contains("Flight with code" + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
+        assertTrue(exception.getMessage().contains("Flight with code " + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
     }
 }

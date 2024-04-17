@@ -7,11 +7,16 @@ import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.awt.print.Book;
+import java.util.Optional;
 import java.util.jar.Manifest;
 
 public class AirportServant extends AdminServiceGrpc.AdminServiceImplBase {
 
+    private static final Logger log = LoggerFactory.getLogger(AirportServant.class);
     private final AirportRepository airportRepository;
 
     public AirportServant(AirportRepository airportRepository) {
@@ -21,6 +26,7 @@ public class AirportServant extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void addSector(StringValue request, StreamObserver<AddSectorResponse> responseObserver) {
         try {
+            System.out.printf("Adding sector %s%n", request.getValue());
             airportRepository.addSector(request.getValue());
             responseObserver.onNext(
                     AddSectorResponse.newBuilder()
@@ -79,31 +85,23 @@ public class AirportServant extends AdminServiceGrpc.AdminServiceImplBase {
 
     @Override
     public StreamObserver<ManifestRequest> manifest(StreamObserver<ManifestResponse> responseObserver) {
-        return new StreamObserver<>() {
+        return new StreamObserver<ManifestRequest>() {
             @Override
-            public void onNext(ManifestRequest request) {
+            public void onNext(final ManifestRequest request) {
+                Booking booking = new Booking(
+                        request.getPassenger().getAirlineName(),
+                        request.getPassenger().getFlightCode(),
+                        request.getPassenger().getBookingCode()
+                );
                 try {
-                    BookingData passenger = request.getPassenger();
-                    airportRepository.addPassenger(
-                            new Booking(
-                                    passenger.getAirlineName(),
-                                    passenger.getFlightCode(),
-                                    passenger.getBookingCode()
-                            )
-                    );
+                    airportRepository.addPassenger(booking);
                     responseObserver.onNext(
                             ManifestResponse.newBuilder()
                                     .setStatus(StatusResponse.newBuilder()
                                             .setCode(Status.OK.getCode().value())
-                                            .setMessage("Passenger processed")
+                                            .setMessage("Booking " + booking.getBookingCode() + " for " + booking.getAirlineName() + " " + booking.getFlightCode() + " added successfully")
                                             .build())
-                                    .setPassenger(
-                                            BookingData.newBuilder()
-                                                    .setBookingCode(passenger.getBookingCode())
-                                                    .setFlightCode(passenger.getFlightCode())
-                                                    .setAirlineName(passenger.getAirlineName())
-                                                    .build()
-                                    )
+                                    .setPassenger(request.getPassenger())
                                     .build()
                     );
                 } catch (IllegalArgumentException e) {
@@ -115,38 +113,17 @@ public class AirportServant extends AdminServiceGrpc.AdminServiceImplBase {
                                             .build())
                                     .build()
                     );
+
                 }
             }
 
-            /*
-            * TODO: Implement onError method
-            *  - Ya se agregó un pasajero con ese código de reserva
-            *  - Ya se agregó un vuelo con ese código pero con otra aerolínea
-            *  y poner el mensaje correcto en el StatusResponse
-            * */
             @Override
             public void onError(Throwable throwable) {
-                responseObserver.onNext(
-                        ManifestResponse.newBuilder()
-                                .setStatus(StatusResponse.newBuilder()
-                                        .setCode(Status.INTERNAL.getCode().value())
-                                        .setMessage(throwable.getMessage())
-                                        .build())
-                                .build()
-                );
-                responseObserver.onCompleted();
+                responseObserver.onError(throwable);
             }
 
             @Override
             public void onCompleted() {
-                responseObserver.onNext(
-                        ManifestResponse.newBuilder()
-                                .setStatus(StatusResponse.newBuilder()
-                                        .setCode(Status.OK.getCode().value())
-                                        .setMessage("Manifest processed")
-                                        .build())
-                                .build()
-                );
                 responseObserver.onCompleted();
             }
         };
