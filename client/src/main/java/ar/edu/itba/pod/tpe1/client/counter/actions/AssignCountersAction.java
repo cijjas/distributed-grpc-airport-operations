@@ -40,7 +40,7 @@ public class AssignCountersAction implements Action {
                     .setSectorName(sector)
                     .addAllFlightCodes(flights)
                     .setAirlineName(airline)
-                    .setCountVal(counterCount)
+                    .setCounterCount(counterCount)
                     .build()));
 
         response.ifPresentOrElse(

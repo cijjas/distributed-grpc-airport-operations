@@ -10,16 +10,12 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.print.Book;
-import java.util.Optional;
-import java.util.jar.Manifest;
+public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
-public class AirportServant extends AdminServiceGrpc.AdminServiceImplBase {
-
-    private static final Logger log = LoggerFactory.getLogger(AirportServant.class);
+    private static final Logger log = LoggerFactory.getLogger(AdminServant.class);
     private final AirportRepository airportRepository;
 
-    public AirportServant(AirportRepository airportRepository) {
+    public AdminServant(AirportRepository airportRepository) {
         this.airportRepository = airportRepository;
     }
 

@@ -57,7 +57,7 @@ message ListCountersResponse {
 
 message AssignCountersRequest {
   string sector_name = 1;
-  int32 count_val = 2;
+  int32 counter_count = 2; // a partir de este valor se asignan los counters
   repeated string flight_codes = 3;
   string airline_name = 4;
 }

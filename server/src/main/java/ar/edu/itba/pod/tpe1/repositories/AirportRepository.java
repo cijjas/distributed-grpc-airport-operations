@@ -34,7 +34,7 @@ public class AirportRepository {
         sectors.put(sectorName, new Sector());
     }
 
-    public synchronized int addCounters(String sectorName, int counterCount) {
+    public synchronized Integer addCounters(String sectorName, int counterCount) {
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }

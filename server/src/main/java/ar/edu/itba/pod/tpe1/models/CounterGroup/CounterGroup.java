@@ -3,10 +3,12 @@ package ar.edu.itba.pod.tpe1.models.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.BookingHist;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Queue;
 
+@Setter
 @Getter
 public abstract class CounterGroup {
     protected int counterCount;
@@ -15,10 +17,6 @@ public abstract class CounterGroup {
     }
 
     public abstract boolean isActive();
-
-    public void setCounterCount(int counterCount) {
-        this.counterCount = counterCount;
-    }
 
     public abstract String getAirlineName();
 
