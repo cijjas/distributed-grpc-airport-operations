@@ -11,7 +11,7 @@
 //option java_multiple_files = true;
 //
 //
-//service CounterQueryService {
+//service QueryService {
 //  rpc Counters(google.protobuf.StringValue) returns (google.protobuf.StringValue);
 //  rpc Checkins(CheckinsRequest) returns (google.protobuf.StringValue);
 //}

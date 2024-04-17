@@ -11,7 +11,7 @@
 //option java_outer_classname = "PassengerServiceModel";
 //option java_multiple_files = true;
 //
-//service CheckinService {
+//service PassengerService {
 //  rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
 //  rpc PassengerCheckin(PassengerCheckinRequest) returns (google.protobuf.StringValue);
 //  rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);

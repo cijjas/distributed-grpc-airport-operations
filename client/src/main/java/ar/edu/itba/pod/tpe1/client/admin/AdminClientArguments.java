@@ -27,8 +27,8 @@ public class AdminClientArguments extends Arguments {
         return Optional.ofNullable(counters);
     }
 
-    public Path getInPath() {
-        return Optional.ofNullable(inPath).orElse(Paths.get(""));
+    public Optional<Path> getInPath() {
+        return Optional.of(inPath);
     }
 
 }
