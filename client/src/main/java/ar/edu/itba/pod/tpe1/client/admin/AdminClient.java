@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class AdminClient {
@@ -100,30 +102,36 @@ public class AdminClient {
 
     private static void manifest(ManagedChannel channel, Path manifestPath) throws IOException {
         AdminServiceGrpc.AdminServiceStub asyncStub = AdminServiceGrpc.newStub(channel);
+        final CountDownLatch finishLatch = new CountDownLatch(1); // Latch for waiting to finish all responses
+
         StreamObserver<ManifestResponse> responseObserver = new StreamObserver<>() {
             @Override
             public void onNext(ManifestResponse serverResponse) {
-                String message = String.format("Booking %s for %s %s added successfully",
-                        serverResponse.getPassenger().getBookingCode(),
-                        serverResponse.getPassenger().getAirlineName(),
-                        serverResponse.getPassenger().getFlightCode());
-                System.out.println(message);
+                if (serverResponse.getStatus().getCode() == Status.OK.getCode().value()) {
+                    String message = String.format("Booking %s for %s %s added successfully",
+                            serverResponse.getPassenger().getBookingCode(),
+                            serverResponse.getPassenger().getAirlineName(),
+                            serverResponse.getPassenger().getFlightCode());
+                    System.out.println(message);
+                } else {
+                    logger.warn("Received non-OK status: {}", serverResponse.getStatus().getMessage());
+                }
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.error("Error in manifest response", t);
+                finishLatch.countDown();
             }
 
             @Override
             public void onCompleted() {
-                logger.info("Manifest response completed");
+                finishLatch.countDown();
             }
         };
 
         StreamObserver<ManifestRequest> requestObserver = asyncStub.manifest(responseObserver);
         try (Stream<String> lines = Files.lines(manifestPath)) {
-            lines.skip(1)
+            lines.skip(1) // Assuming the first line is a header
                     .map(line -> line.split(";"))
                     .forEach(parts -> {
                         BookingData bookingData = BookingData.newBuilder()
@@ -137,5 +145,22 @@ public class AdminClient {
         } catch (Exception e) {
             requestObserver.onError(e);
         }
+
+        try {
+            finishLatch.await();
+            channel.shutdownNow();
+            if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
+                logger.error("Channel did not terminate within the allowed time");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Operation was interrupted", e);
+        } finally {
+            if (!channel.isShutdown()) {
+                channel.shutdownNow();
+            }
+        }
+
     }
+
 }
