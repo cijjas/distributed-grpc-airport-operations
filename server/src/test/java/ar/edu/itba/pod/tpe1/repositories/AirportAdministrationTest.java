@@ -18,7 +18,7 @@ class AirportAdministrationTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new ArrayList<>(), new ArrayList<>());
+        airportRepository = new AirportRepository(new HashMap<>(), new ArrayList<>(), new HashMap<>());
     }
 
     // TODO: verificar que realmente se agregan
