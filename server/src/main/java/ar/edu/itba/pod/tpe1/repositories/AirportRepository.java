@@ -85,23 +85,23 @@ public class AirportRepository {
         return sectors.get(sectorName).getCounterGroupMap();
     }
 
-    public void assignCounters(String sectorName, String airlineName, List<String> flightCodes, int counterCount) {
+    public Pair<Boolean, Integer> assignCounters(String sectorName, String airlineName, List<String> flightCodes, int counterCount) {
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }
 
         CheckinAssignment checkinAssignment = new CheckinAssignment(airlineName, flightCodes, counterCount);
 
-        sectors.get(sectorName).assignCounterGroup(checkinAssignment);
+        return sectors.get(sectorName).assignCounterGroup(checkinAssignment);
     }
 
 
-    public void freeCounters(String sectorName, String airlineName, int counterFrom) {
+    public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom) {
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }
 
-        sectors.get(sectorName).freeCounters(airlineName, counterFrom);
+        return sectors.get(sectorName).freeCounters(airlineName, counterFrom);
     }
 
     public List<BookingHist> checkInCounters(String sectorName, int counterFrom, String airlineName) {
