@@ -58,21 +58,21 @@ public class Sector {
         assignCounterGroupForPendingAssignments();
     }
 
-    public boolean assignCounterGroupOrEnqueue(CheckinAssignment checkinAssignment, boolean addIfNoSpace) {
+    public Pair<Boolean, Integer> assignCounterGroupOrEnqueue(CheckinAssignment checkinAssignment, boolean addIfNoSpace) {
         for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
             if (entry.getValue().getCounterCount() >= checkinAssignment.counterCount() && !entry.getValue().isActive()) {
                 splitUnoccupiedCounter(entry.getKey(), checkinAssignment.counterCount());
                 counterGroupMap.put(entry.getKey(), new AssignedCounterGroup(checkinAssignment));
-                return true;
+                return new Pair<>(true, entry.getKey());
             }
         }
 
         if (addIfNoSpace) pendingAssignmentsList.add(checkinAssignment);
-        return false;    // TODO: change
+        return new Pair<>(false, pendingAssignmentsList.size() - 1);
 
     }
 
-    public boolean assignCounterGroup(CheckinAssignment checkinAssignment) {
+    public Pair<Boolean, Integer> assignCounterGroup(CheckinAssignment checkinAssignment) {
         return assignCounterGroupOrEnqueue(checkinAssignment, true);
     }
 
@@ -81,7 +81,7 @@ public class Sector {
         Integer minCountNotAdded = null;
         for (CheckinAssignment checkinAssignment : pendingAssignmentsList)
             if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount())
-                    && assignCounterGroupOrEnqueue(checkinAssignment, false)) {
+                    && assignCounterGroupOrEnqueue(checkinAssignment, false).getLeft()) {
                 pendingAssignmentsList.remove(checkinAssignment);
                 minCountNotAdded = checkinAssignment.counterCount();
             }
@@ -115,7 +115,7 @@ public class Sector {
         return returnMap;
     }
 
-    public void freeCounters(String airlineName, int counterFrom) {
+    public CounterGroup freeCounters(String airlineName, int counterFrom) {
         CounterGroup counterGroup = counterGroupMap.get(counterFrom);
 
         if (counterGroup == null || !counterGroup.isActive()) {
@@ -131,6 +131,7 @@ public class Sector {
         }
 
         addCounterGroup(counterFrom, new UnassignedCounterGroup(counterGroup.getCounterCount()));
+        return counterGroup;
     }
 
     public List<BookingHist> checkinCounters(int counterFrom, String airlineName){
