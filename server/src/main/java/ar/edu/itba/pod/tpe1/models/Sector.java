@@ -10,12 +10,21 @@ import java.util.*;
 
 @Getter
 public class Sector {
-    private final Queue<CheckinAssignment> pendingAssignmentsQueue;
+    //Pending to assing group (osea no tienen counters aun)
+    private final List<CheckinAssignment> pendingAssignmentsList;
+
     private final SortedMap<Integer, CounterGroup> counterGroupMap;
 
     public Sector() {
-        pendingAssignmentsQueue = new PriorityQueue<>();
+        pendingAssignmentsList = new LinkedList<>();
         counterGroupMap = new TreeMap<>();
+    }
+
+    public CounterGroup fetchCounter(String flightCode){
+        for(CounterGroup group : counterGroupMap.values())
+            if(group.containsFlightCode(flightCode))
+                return group;
+        return null;
     }
 
     public void addCounterGroup(int firstCounter, CounterGroup newCounterGroup) {
@@ -45,9 +54,11 @@ public class Sector {
             counterGroupMap.remove(tailMap.firstKey());
             System.out.println("Merged");
         }
+
+        assignCounterGroupForPendingAssignments();
     }
 
-    public boolean assignCounterGroup(CheckinAssignment checkinAssignment) {
+    public boolean assignCounterGroupOrEnqueue(CheckinAssignment checkinAssignment, boolean addIfNoSpace) {
         for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
             if (entry.getValue().getCounterCount() >= checkinAssignment.counterCount() && !entry.getValue().isActive()) {
                 splitUnoccupiedCounter(entry.getKey(), checkinAssignment.counterCount());
@@ -56,9 +67,24 @@ public class Sector {
             }
         }
 
-        pendingAssignmentsQueue.add(checkinAssignment);
+        if (addIfNoSpace) pendingAssignmentsList.add(checkinAssignment);
         return false;    // TODO: change
 
+    }
+
+    public boolean assignCounterGroup(CheckinAssignment checkinAssignment) {
+        return assignCounterGroupOrEnqueue(checkinAssignment, true);
+    }
+
+
+    public void assignCounterGroupForPendingAssignments() {
+        Integer minCountNotAdded = null;
+        for (CheckinAssignment checkinAssignment : pendingAssignmentsList)
+            if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount())
+                    && assignCounterGroupOrEnqueue(checkinAssignment, false)) {
+                pendingAssignmentsList.remove(checkinAssignment);
+                minCountNotAdded = checkinAssignment.counterCount();
+            }
     }
 
     private CounterGroup splitUnoccupiedCounter(int firstCount, int counterGroupSize) {
@@ -105,5 +131,39 @@ public class Sector {
         }
 
         addCounterGroup(counterFrom, new UnassignedCounterGroup(counterGroup.getCounterCount()));
+    }
+
+    public List<BookingHist> checkinCounters(int counterFrom, String airlineName){
+        CounterGroup counterGroup = counterGroupMap.get(counterFrom);
+
+        if (counterGroup == null || !counterGroup.isActive()) {
+            throw new IllegalArgumentException("No counter groups start on counter " + counterFrom + " in requested sector");
+        }
+
+        if (!counterGroup.getAirlineName().equals(airlineName)) {
+            throw new IllegalArgumentException("Counter does not correspond to requested airline");
+        }
+
+        return counterGroup.checkinCounters().stream().map(bookingHist -> {
+            bookingHist.setCheckinCounter(bookingHist.getCheckinCounter() + counterFrom);
+            return bookingHist;
+        }).toList();
+    }
+
+    public List<CheckinAssignment> listPendingAssignments() {
+        return new ArrayList<>(pendingAssignmentsList);
+    }
+
+    public CounterGroup passengerCheckin(Booking booking, int fromCounter){
+        if(!counterGroupMap.containsKey(fromCounter))
+            throw new IllegalArgumentException("Invalid counter start");
+        CounterGroup group = counterGroupMap.get(fromCounter);
+
+        if(!group.containsFlightCode(booking.getFlightCode()))
+            throw new IllegalArgumentException("Invalid counter start for flight");
+
+        group.addPendingPassenger(booking);
+
+        return group;
     }
 }

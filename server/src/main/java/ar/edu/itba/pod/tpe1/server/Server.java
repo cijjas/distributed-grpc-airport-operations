@@ -22,8 +22,9 @@ public class Server {
         int port = 50051;
         io.grpc.Server server = ServerBuilder.forPort(port)
                 .addService(new AirportServant(new AirportRepository(
+                        new HashMap<>(),
                         new ArrayList<>(),
-                        new ArrayList<>()
+                        new HashMap<>()
                 )))
                 .build();
         server.start();
