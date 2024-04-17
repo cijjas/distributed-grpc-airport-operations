@@ -15,6 +15,10 @@
       <artifactId>tpe1-g7-api</artifactId>
       <version>2024.1Q</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <testSourceDirectory>src/test/java</testSourceDirectory>

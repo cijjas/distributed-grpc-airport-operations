@@ -1,53 +1,52 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
-import ar.edu.itba.pod.tpe1.models.Booking;
-import ar.edu.itba.pod.tpe1.models.BookingHist;
-import ar.edu.itba.pod.tpe1.models.Counter;
+import ar.edu.itba.pod.tpe1.models.*;
+import ar.edu.itba.pod.tpe1.models.CounterGroup.AssignedCounterGroup;
+import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
+import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
+import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 
 import java.util.*;
 
 public class AirportRepository {
-    private Integer currentCounterCount;
     private final List<Booking> expectedPassengerList;
-    private final Map<String, SortedSet<Counter>> countersInSectorsMap;
-    private final List<CheckinRepository> activeCheckinList;
     private final List<BookingHist> checkedinPassengerList;
 
-    public AirportRepository(List<Booking> expectedPassengerList, Map<String, SortedSet<Counter>> countersInSectorsMap, List<CheckinRepository> activeCheckinList, List<BookingHist> checkedinPassengerList) {
+    private final SortedMap<String, Sector> sectors;
+    private int nextAvailableCounter;
+
+    public AirportRepository(List<Booking> expectedPassengerList, List<BookingHist> checkedinPassengerList) {
         this.expectedPassengerList = expectedPassengerList;
-        this.countersInSectorsMap = countersInSectorsMap;
-        this.activeCheckinList = activeCheckinList;
         this.checkedinPassengerList = checkedinPassengerList;
-        this.currentCounterCount = 0;
+        this.sectors = new TreeMap<>();
+        nextAvailableCounter = 1;
     }
 
     public synchronized void addSector(String sectorName) {
-        if (countersInSectorsMap.containsKey(sectorName)) {
+        if (sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector name already exists");
         }
 
-        countersInSectorsMap.put(sectorName, new TreeSet<>());
+        sectors.put(sectorName, new Sector());
     }
 
-    public synchronized Integer addCounters(String sectorName, int counterCount) {
-        if (!countersInSectorsMap.containsKey(sectorName)) {
+    public synchronized int addCounters(String sectorName, int counterCount) {
+        if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
-        } else if (counterCount <= 0) {
+        }
+
+        if (counterCount <= 0) {
             throw new IllegalArgumentException("Counter count must be greater than 0");
         }
 
-        SortedSet<Counter> currentCounters = countersInSectorsMap.get(sectorName);
+        Sector sector = sectors.get(sectorName);
+        sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(counterCount));
 
-
-        for (int i = 1; i <= counterCount; i++) {
-            currentCounters.add(new Counter(currentCounterCount + i, false));
-        }
-
-        currentCounterCount += counterCount;
-
-        return currentCounterCount - counterCount;
-
+        nextAvailableCounter += counterCount;
+        return nextAvailableCounter;
     }
+
+
 
     // TODO: solo va a funcionar con los expectedPassengers (y no los que ya pasaron) con esta impl
     public synchronized void addPassenger(Booking booking) {
@@ -60,27 +59,53 @@ public class AirportRepository {
         expectedPassengerList.add(booking);
     }
 
-    public void listSectors() {
+    public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
+        SortedMap<String, SortedMap<Integer, Integer>> mappedSectors = new TreeMap<>();
 
+        if (sectors.isEmpty()) {
+            throw new IllegalStateException("No sectors registered");
+        }
+
+        for (Map.Entry<String, Sector> entry : sectors.entrySet()) {
+            mappedSectors.put(entry.getKey(), entry.getValue().listGroupedCounters());
+        }
+
+        return mappedSectors;
     }
 
-    public void listCounters() {
+    // TODO: fromVal and toVal (teniendo 2-5, si arranca en 2 y me piden del 3, lo muestro?)
+    public SortedMap<Integer, CounterGroup> listCounters(String sectorName) {
+        if (!sectors.containsKey(sectorName)) {
+            throw new IllegalArgumentException("Sector not found");
+        }
 
+        return sectors.get(sectorName).getCounterGroupMap();
     }
 
-    public void assignCounters() {
+    public void assignCounters(String sectorName, String airlineName, List<String> flightCodes, int counterCount) {
+        if (!sectors.containsKey(sectorName)) {
+            throw new IllegalArgumentException("Sector not found");
+        }
 
+        CheckinAssignment checkinAssignment = new CheckinAssignment(airlineName, flightCodes, counterCount);
+
+        sectors.get(sectorName).assignCounterGroup(checkinAssignment);
     }
 
-    public void freeCounters() {
 
+    public void freeCounters(String sectorName, String airlineName, int counterFrom) {
+        if (!sectors.containsKey(sectorName)) {
+            throw new IllegalArgumentException("Sector not found");
+        }
+
+        sectors.get(sectorName).freeCounters(airlineName, counterFrom);
     }
-
-    public void checkInCounters() {
-
-    }
-
-    public void listPendingAssignments() {
-
-    }
+//
+//    public void checkInCounters() {
+//
+//    }
+//
+//    public void listPendingAssignments() {
+//
+//    }
 }
