@@ -4,13 +4,12 @@ import ar.edu.itba.pod.tpe1.models.Booking;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AirportRepositoryTest {
+class AirportAdministrationTest {
 
     private AirportRepository airportRepository;
 
@@ -84,7 +83,7 @@ class AirportRepositoryTest {
                 () -> airportRepository.addPassenger(PASSENGER_C_SAME_BOOKING),
                 "Expected IllegalArgumentException because booking already exists");
 
-        assertTrue(exception.getMessage().contains("Booking already exists"));
+        assertTrue(exception.getMessage().contains("Booking with code " + PASSENGER_A.getBookingCode() + " already exists"));
     }
 
     @Test
@@ -95,8 +94,6 @@ class AirportRepositoryTest {
                 () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
                 "Expected IllegalArgumentException because flight is already assigned to other airline");
 
-        assertTrue(exception.getMessage().contains("Flight is already assigned to other airline"));
-
-        ;
+        assertTrue(exception.getMessage().contains("Flight with code" + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
     }
 }
