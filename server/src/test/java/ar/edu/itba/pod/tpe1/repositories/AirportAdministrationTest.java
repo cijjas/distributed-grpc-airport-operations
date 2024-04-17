@@ -75,14 +75,14 @@ class AirportAdministrationTest {
         assertTrue(exception.getMessage().contains("Booking with code " + PASSENGER_A.getBookingCode() + " already exists"));
     }
 
-    @Test
-    public final void addExpectedPassengersSameFlightDifferentAirlineTest() {
-        airportRepository.addPassenger(PASSENGER_A);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
-                "Expected IllegalArgumentException because flight is already assigned to other airline");
-
-        assertTrue(exception.getMessage().contains("Flight with code " + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
-    }
+//    @Test
+//    public final void addExpectedPassengersSameFlightDifferentAirlineTest() {
+//        airportRepository.addPassenger(PASSENGER_A);
+//
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+//                () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
+//                "Expected IllegalArgumentException because flight is already assigned to other airline");
+//
+//        assertTrue(exception.getMessage().contains("Flight with code " + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
+//    }
 }

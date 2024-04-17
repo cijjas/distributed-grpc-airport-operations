@@ -1,18 +1,28 @@
-//syntax = "proto3";
-//
-//package service;
-//
-//import "google/protobuf/wrappers.proto";
-//import "google/protobuf/empty.proto";
-//
-//
-//option java_package = "ar.edu.itba.pod.grpc";
-//option java_outer_classname = "EventsServiceModel";
-//option java_multiple_files = true;
-//
-//
-//service EventsService {
-//  rpc Register(google.protobuf.StringValue) returns (google.protobuf.StringValue);
-//  rpc Unregister(google.protobuf.StringValue) returns (google.protobuf.StringValue);
-//}
-//
+syntax = "proto3";
+
+package service;
+
+import "status_response.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+
+option java_package = "ar.edu.itba.pod.grpc";
+option java_outer_classname = "EventsServiceModel";
+option java_multiple_files = true;
+
+
+service EventsService {
+  rpc Register(google.protobuf.StringValue) returns (RegisterResponse);
+  rpc Unregister(google.protobuf.StringValue) returns (UnregisterResponse);
+}
+
+message RegisterResponse {
+  string message = 1;
+  StatusResponse status = 2;
+}
+
+message UnregisterResponse {
+  string message = 1;
+  StatusResponse status = 2;
+}

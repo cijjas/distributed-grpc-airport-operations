@@ -25,7 +25,7 @@ public class PassengerClientParser {
     }
 
 
-    public Optional<PassengerClientArguments> getEventsClientArguments(String[] args) {
+    public Optional<PassengerClientArguments> getPassengerClientArguments(String[] args) {
         try {
             CommandLine cmd = parser.parse(options, args);
 

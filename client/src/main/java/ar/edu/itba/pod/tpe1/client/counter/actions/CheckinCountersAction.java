@@ -4,11 +4,9 @@ import ar.edu.itba.pod.grpc.CheckinCountersRequest;
 import ar.edu.itba.pod.grpc.CheckinCountersResponse;
 import ar.edu.itba.pod.grpc.CounterServiceGrpc;
 import ar.edu.itba.pod.tpe1.client.Action;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClient;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import io.grpc.ManagedChannel;
-import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

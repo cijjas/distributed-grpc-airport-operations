@@ -4,15 +4,12 @@ import ar.edu.itba.pod.grpc.CounterServiceGrpc;
 import ar.edu.itba.pod.grpc.FreeCountersRequest;
 import ar.edu.itba.pod.grpc.FreeCountersResponse;
 import ar.edu.itba.pod.tpe1.client.Action;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClient;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 public class FreeCountersAction implements Action {

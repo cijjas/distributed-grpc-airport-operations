@@ -2,19 +2,10 @@ package ar.edu.itba.pod.tpe1.client.counter;
 
 import ar.edu.itba.pod.tpe1.client.Action;
 import ar.edu.itba.pod.tpe1.client.ChannelBuilder;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClient;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientAction;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientParser;
-import ar.edu.itba.pod.tpe1.client.admin.actions.AddCountersAction;
-import ar.edu.itba.pod.tpe1.client.admin.actions.AddSectorAction;
-import ar.edu.itba.pod.tpe1.client.admin.actions.ManifestAction;
 import ar.edu.itba.pod.tpe1.client.counter.actions.*;
 import io.grpc.ManagedChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ar.edu.itba.pod.tpe1.client.counter.CounterClientAction;
-import java.nio.file.Path;
 import java.util.Optional;
 
 public class CounterClient {

@@ -25,7 +25,7 @@ public class QueryClientParser {
     }
 
 
-    public Optional<QueryClientArguments> getEventsClientArguments(String[] args) {
+    public Optional<QueryClientArguments> getQueryClientArguments(String[] args) {
         try {
             CommandLine cmd = parser.parse(options, args);
 

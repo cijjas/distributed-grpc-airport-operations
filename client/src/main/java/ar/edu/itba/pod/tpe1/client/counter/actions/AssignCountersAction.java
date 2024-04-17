@@ -3,9 +3,7 @@ package ar.edu.itba.pod.tpe1.client.counter.actions;
 import ar.edu.itba.pod.grpc.AssignCountersRequest;
 import ar.edu.itba.pod.grpc.AssignCountersResponse;
 import ar.edu.itba.pod.grpc.CounterServiceGrpc;
-import ar.edu.itba.pod.grpc.ListCountersResponse;
 import ar.edu.itba.pod.tpe1.client.Action;
-import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClient;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import io.grpc.ManagedChannel;
@@ -15,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class AssignCountersAction implements Action {
     ManagedChannel channel;

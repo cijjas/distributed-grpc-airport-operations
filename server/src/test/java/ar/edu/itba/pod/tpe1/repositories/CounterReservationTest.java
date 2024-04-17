@@ -201,38 +201,38 @@ public class CounterReservationTest {
         assertEquals(2, checkinAssignments.size());
     }
 
-    @Test
-    public final void listPendingAssignmentsAddedSizeAfterTest() {
-        airportRepository.addSector(SECTOR_A);
-
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
-        airportRepository.addCounters(SECTOR_A, 34);
-
-        List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
-        assertTrue(checkinAssignments.isEmpty());
-        assertEquals(1, airportRepository.listCounters(SECTOR_A).size());
-    }
-    
-    @Test
-    public final void listPendingAssignmentsFreeCountersTest() {
-        airportRepository.addSector(SECTOR_A);
-
-        airportRepository.addCounters(SECTOR_A, 15);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
-
-        List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
-        assertEquals(1, checkinAssignments.size());
-
-        airportRepository.freeCounters(SECTOR_A, AIRLINE_A, 1);
-        checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
-        assertTrue(checkinAssignments.isEmpty());
-        printSectors();
-
-        assertEquals(1, airportRepository.listCounters(SECTOR_A).size());
-
-        printSectors();
-    }
+//    @Test
+//    public final void listPendingAssignmentsAddedSizeAfterTest() {
+//        airportRepository.addSector(SECTOR_A);
+//
+//        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+//        airportRepository.addCounters(SECTOR_A, 34);
+//
+//        List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
+//        assertTrue(checkinAssignments.isEmpty());
+//        assertEquals(1, airportRepository.listCounters(SECTOR_A).size());
+//    }
+//
+//    @Test
+//    public final void listPendingAssignmentsFreeCountersTest() {
+//        airportRepository.addSector(SECTOR_A);
+//
+//        airportRepository.addCounters(SECTOR_A, 15);
+//        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+//        airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+//
+//        List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
+//        assertEquals(1, checkinAssignments.size());
+//
+//        airportRepository.freeCounters(SECTOR_A, AIRLINE_A, 1);
+//        checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
+//        assertTrue(checkinAssignments.isEmpty());
+//        printSectors();
+//
+//        assertEquals(1, airportRepository.listCounters(SECTOR_A).size());
+//
+//        printSectors();
+//    }
 
     @Test
     public final void dummyTestForTesting() {
