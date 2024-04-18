@@ -34,7 +34,7 @@ public class AirportRepository {
             throw new IllegalArgumentException("Sector name already exists");
         }
 
-        sectors.put(sectorName, new Sector());
+        sectors.put(sectorName, new Sector(sectorName));
     }
 
     public synchronized Integer addCounters(String sectorName, int counterCount) {
@@ -212,6 +212,14 @@ public class AirportRepository {
 //    public void passengerStatus(String bookingCode){
 //
 //    }
+
+    public boolean hasPendingPassenger(String airlineName){
+        for(Booking booking : allRegisteredPassengers.values())
+            if(booking.getAirlineName().equals(airlineName))
+                return true;
+
+        return false;
+    }
 
 
 }

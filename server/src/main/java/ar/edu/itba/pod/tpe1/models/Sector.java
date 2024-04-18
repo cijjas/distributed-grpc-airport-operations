@@ -15,9 +15,13 @@ public class Sector {
 
     private final SortedMap<Integer, CounterGroup> counterGroupMap;
 
-    public Sector() {
+    private final String name;
+
+
+    public Sector(String name) {
         pendingAssignmentsList = new LinkedList<>();
         counterGroupMap = new TreeMap<>();
+        this.name = name;
     }
 
     public CounterGroup fetchCounter(String flightCode) {
@@ -167,4 +171,9 @@ public class Sector {
 
         return group;
     }
+
+    public String getName() {
+        return name;
+    }
+
 }

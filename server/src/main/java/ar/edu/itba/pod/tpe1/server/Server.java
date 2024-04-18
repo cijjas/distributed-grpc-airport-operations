@@ -21,6 +21,7 @@ public class Server {
         int port = 50051;
         AirportRepository airportRepository = new AirportRepository(
                 new HashMap<>(),
+                new HashMap<>(),
                 new ArrayList<>(),
                 new HashMap<>()
         );
