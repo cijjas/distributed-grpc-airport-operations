@@ -77,10 +77,21 @@ public class CounterReservationTest {
     @Test
     public final void listCountersSectorDoesNotExistTest() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> airportRepository.listCounters(SECTOR_A),
+                () -> airportRepository.listCounters(SECTOR_A, 0, 1),
                 "Expected IllegalArgumentException since sector not found");
 
         assertTrue(exception.getMessage().contains("Sector not found"));
+    }
+
+    @Test
+    public final void listCountersInvalidRangeTest() {
+        airportRepository.addSector(SECTOR_A);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.listCounters(SECTOR_A, 2, 1),
+                "Expected IllegalArgumentException since range is invalid");
+
+        assertTrue(exception.getMessage().contains("Requested range is not valid"));
     }
 
     @Test
@@ -91,9 +102,37 @@ public class CounterReservationTest {
         airportRepository.addCounters(SECTOR_A, 34);
         airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
-        SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(SECTOR_A);
+        SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(SECTOR_A, 0, 50);
 
         assertEquals(2, counters.size());
+    }
+
+    @Test
+    public final void listCountersIncludeRangeTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+
+        airportRepository.addCounters(SECTOR_A, 20);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+
+        SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(SECTOR_A, 1, 11);
+
+        assertEquals(2, counters.size());
+    }
+
+    @Test
+    public final void listCountersIncludeRangeOnlyOneTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+
+        airportRepository.addCounters(SECTOR_A, 20);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+
+        SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(SECTOR_A, 1, 10);
+
+        assertEquals(1, counters.size());
     }
 
     @Test

@@ -95,13 +95,23 @@ public class AirportRepository {
         return mappedSectors;
     }
 
-    // TODO: fromVal and toVal (teniendo 2-5, si arranca en 2 y me piden del 3, lo muestro?)
     public SortedMap<Integer, CounterGroup> listCounters(String sectorName) {
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }
 
         return sectors.get(sectorName).getCounterGroupMap();
+    }
+    public SortedMap<Integer, CounterGroup> listCounters(String sectorName, int fromVal, int toVal) {
+        if (!sectors.containsKey(sectorName)) {
+            throw new IllegalArgumentException("Sector not found");
+        }
+
+        if (toVal - fromVal < 0) {
+            throw new IllegalArgumentException("Requested range is not valid");
+        }
+
+        return sectors.get(sectorName).listCounters(fromVal, toVal);
     }
 
     private boolean allFlightCodeRegistered(List<String> flightCodes) {

@@ -62,7 +62,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     @Override
     public void listCounters(ListCountersRequest request, StreamObserver<ListCountersResponse> responseObserver) {
         try {
-            SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(request.getSectorName());
+            SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(request.getSectorName(), request.getCounterFrom(), request.getCounterTo());
             ListCountersResponse.Builder responseBuilder = ListCountersResponse.newBuilder();
             counters.forEach((from, counterGroup) -> responseBuilder.addCounters(
                     Counter.newBuilder()
