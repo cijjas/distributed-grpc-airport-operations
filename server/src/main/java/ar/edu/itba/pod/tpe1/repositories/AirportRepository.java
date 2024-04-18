@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
+import ar.edu.itba.pod.grpc.Checkin;
 import ar.edu.itba.pod.tpe1.models.*;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.AssignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
@@ -8,6 +9,7 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AirportRepository {
     private final Map<String, Booking> allRegisteredPassengers;
@@ -140,7 +142,10 @@ public class AirportRepository {
             throw new IllegalArgumentException("Sector not found");
         }
         List<BookingHist> toRet = sectors.get(sectorName).checkinCounters(counterFrom, airlineName);
-        checkedinPassengerList.addAll(toRet.stream().filter(b -> b.getAirlineName() != null).toList());
+        checkedinPassengerList.addAll(toRet.stream()
+                .filter(b -> b.getAirlineName() != null)
+                .peek(bh -> bh.setSector(sectorName))
+                .toList());
         return toRet;
     }
 
@@ -221,5 +226,33 @@ public class AirportRepository {
         return false;
     }
 
+    public SortedMap<String, Sector> counters(String sectorName) {
+        if (nextAvailableCounter == 1)
+            throw new IllegalStateException("No counters registered");
+
+        if (sectorName == null)
+            return sectors;
+
+        SortedMap<String, Sector> toRet = new TreeMap<>();
+        toRet.put(sectorName, sectors.get(sectorName));
+        return toRet;
+    }
+
+    public List<BookingHist> checkins(String sectorName, String airlineName) {
+        if (checkedinPassengerList.isEmpty())
+            throw new IllegalStateException("No checkins registered");
+
+        Stream<BookingHist> stream = checkedinPassengerList.stream();
+
+        if (sectorName != null) {
+            stream = stream.filter(bookingHist -> bookingHist.getSector().equals(sectorName));
+        }
+
+        if (airlineName != null) {
+            stream = stream.filter(bookingHist -> bookingHist.getAirlineName().equals(airlineName));
+        }
+
+        return stream.collect(Collectors.toList());
+    }
 
 }

@@ -96,6 +96,8 @@ public class Sector {
         int prevSize = leftCounterGroup.getCounterCount();
         leftCounterGroup.setCounterCount(counterGroupSize);
 
+        if (prevSize == counterGroupSize) return leftCounterGroup;
+
         counterGroupMap.put(firstCount + counterGroupSize, new UnassignedCounterGroup(prevSize - counterGroupSize));
 
         return leftCounterGroup;
