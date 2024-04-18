@@ -5,6 +5,7 @@ import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import org.apache.commons.cli.*;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +51,9 @@ public class CounterClientParser {
             String counterToValue = cmd.getOptionValue("DcounterTo");
             arguments.setCounterTo(counterToValue != null ? Integer.parseInt(counterToValue) : null);
             // Flights
-            arguments.setFlights(parseFlights(cmd.getOptionValue("Dflights")));
+            arguments.setFlights(
+                    parseFlights(cmd.getOptionValue("Dflights"))
+            );
             // Airline
             arguments.setAirline(cmd.getOptionValue("Dairline"));
             // Counter count
@@ -66,6 +69,8 @@ public class CounterClientParser {
 
     private List<String> parseFlights(String flights)
     {
+        if (flights == null)
+            return null;
         return List.of(flights.split("\\|"));
     }
 

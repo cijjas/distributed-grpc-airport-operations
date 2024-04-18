@@ -47,8 +47,10 @@ public class ListSectorsAction implements Action {
     private void handleResponse(ListSectorsResponse response) {
         if (response.getStatus().getCode() == Status.OK.getCode().value()) {
             printSectors(response);
+        } else if (response.getStatus().getCode() == Status.NOT_FOUND.getCode().value()) {
+            System.out.println("No sectors found");
         } else {
-            logger.error("Error listing sectors: {}", response.getStatus().getMessage());
+            System.out.println("Failed to list sectors");
         }
     }
 

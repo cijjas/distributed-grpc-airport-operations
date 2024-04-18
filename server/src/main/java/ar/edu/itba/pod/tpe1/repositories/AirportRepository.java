@@ -50,7 +50,7 @@ public class AirportRepository {
         sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(counterCount));
 
         nextAvailableCounter += counterCount;
-        return nextAvailableCounter;
+        return nextAvailableCounter - counterCount;
     }
 
     private boolean flightCodeAlreadyExistsForOtherAirlines(String currentAirline, List<String> flightCodes) {
@@ -81,7 +81,7 @@ public class AirportRepository {
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
         SortedMap<String, SortedMap<Integer, Integer>> mappedSectors = new TreeMap<>();
-
+        System.out.println(sectors);
         if (sectors.isEmpty()) {
             throw new IllegalStateException("No sectors registered");
         }

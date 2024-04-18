@@ -7,6 +7,7 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import com.google.protobuf.Empty;
 import com.google.protobuf.StringValue;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,22 +32,30 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             ListSectorsResponse.Builder responseBuilder = ListSectorsResponse.newBuilder();
             sectors.forEach((sectorName, counters) -> {
                 Sector.Builder sectorBuilder = Sector.newBuilder().setSectorName(sectorName);
-                counters.forEach((from, to) -> sectorBuilder.addCounterRanges(
-                        CounterRange.newBuilder().setCounterFrom(from).setCounterTo(to).build()
+                counters.forEach((from, count) -> sectorBuilder.addCounterRanges(
+                        CounterRange.newBuilder().setCounterFrom(from).setCounterTo(from + count -1).build()
                 ));
                 responseBuilder.addSectors(sectorBuilder.build());
             });
 
             responseBuilder.setStatus(
                     StatusResponse.newBuilder()
-                            .setCode(io.grpc.Status.OK.getCode().value())
+                            .setCode(Status.OK.getCode().value())
                             .setMessage("Sectors listed successfully")
                             .build()
             );
             responseObserver.onNext(responseBuilder.build());
-            responseObserver.onCompleted();
         } catch (IllegalStateException e) {
-            responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+            responseObserver.onNext(
+                    ListSectorsResponse.newBuilder()
+                            .setStatus(StatusResponse.newBuilder()
+                                    .setCode(Status.NOT_FOUND.getCode().value())
+                                    .setMessage(e.getMessage())
+                                    .build())
+                            .build()
+            );
+        } finally {
+            responseObserver.onCompleted();
         }
     }
 
