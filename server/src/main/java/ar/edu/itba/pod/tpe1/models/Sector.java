@@ -20,9 +20,9 @@ public class Sector {
         counterGroupMap = new TreeMap<>();
     }
 
-    public CounterGroup fetchCounter(String flightCode){
-        for(CounterGroup group : counterGroupMap.values())
-            if(group.containsFlightCode(flightCode))
+    public CounterGroup fetchCounter(String flightCode) {
+        for (CounterGroup group : counterGroupMap.values())
+            if (group.containsFlightCode(flightCode))
                 return group;
         return null;
     }
@@ -134,7 +134,7 @@ public class Sector {
         return counterGroup;
     }
 
-    public List<BookingHist> checkinCounters(int counterFrom, String airlineName){
+    public List<BookingHist> checkinCounters(int counterFrom, String airlineName) {
         CounterGroup counterGroup = counterGroupMap.get(counterFrom);
 
         if (counterGroup == null || !counterGroup.isActive()) {
@@ -155,12 +155,12 @@ public class Sector {
         return new ArrayList<>(pendingAssignmentsList);
     }
 
-    public CounterGroup passengerCheckin(Booking booking, int fromCounter){
-        if(!counterGroupMap.containsKey(fromCounter))
+    public CounterGroup passengerCheckin(Booking booking, int fromCounter) {
+        if (!counterGroupMap.containsKey(fromCounter))
             throw new IllegalArgumentException("Invalid counter start");
         CounterGroup group = counterGroupMap.get(fromCounter);
 
-        if(!group.containsFlightCode(booking.getFlightCode()))
+        if (!group.containsFlightCode(booking.getFlightCode()))
             throw new IllegalArgumentException("Invalid counter start for flight");
 
         group.addPendingPassenger(booking);

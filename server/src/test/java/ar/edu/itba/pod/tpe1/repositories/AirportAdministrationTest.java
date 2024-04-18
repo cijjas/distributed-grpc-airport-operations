@@ -18,14 +18,15 @@ class AirportAdministrationTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new ArrayList<>(), new HashMap<>());
+        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new ArrayList<>(), new HashMap<>());
     }
 
-    // TODO: verificar que realmente se agregan
     @Test
     public final void addSectorTest() {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addSector(SECTOR_B);
+
+        assertEquals(2, airportRepository.listSectors().size());
     }
 
     @Test
@@ -75,14 +76,14 @@ class AirportAdministrationTest {
         assertTrue(exception.getMessage().contains("Booking with code " + PASSENGER_A.getBookingCode() + " already exists"));
     }
 
-//    @Test
-//    public final void addExpectedPassengersSameFlightDifferentAirlineTest() {
-//        airportRepository.addPassenger(PASSENGER_A);
-//
-//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-//                () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
-//                "Expected IllegalArgumentException because flight is already assigned to other airline");
-//
-//        assertTrue(exception.getMessage().contains("Flight with code " + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
-//    }
+    @Test
+    public final void addExpectedPassengersSameFlightDifferentAirlineTest() {
+        airportRepository.addPassenger(PASSENGER_A);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.addPassenger(PASSENGER_B_SAME_FLIGHT),
+                "Expected IllegalArgumentException because flight is already assigned to other airline");
+
+        assertTrue(exception.getMessage().contains("Flight with code " + PASSENGER_A.getFlightCode() + " is already assigned to another airline"));
+    }
 }

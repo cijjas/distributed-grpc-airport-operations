@@ -4,10 +4,7 @@ import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.BookingHist;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 @Getter
 public class AssignedCounterGroup extends CounterGroup{
@@ -20,7 +17,7 @@ public class AssignedCounterGroup extends CounterGroup{
         this.airlineName = checkinAssignment.airlineName();
         this.flightCodes = checkinAssignment.flightCodes();
 
-        this.pendingPassengers = new PriorityQueue<>();
+        this.pendingPassengers = new LinkedList<>();
     }
 
     @Override
