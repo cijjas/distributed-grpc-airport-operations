@@ -7,8 +7,10 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AirportRepository {
+    private final Map<String, Booking> allRegisteredPassengers;
     private final Map<String, Booking> expectedPassengerList;
     private final List<BookingHist> checkedinPassengerList;
 
@@ -18,7 +20,8 @@ public class AirportRepository {
 
     private int nextAvailableCounter;
 
-    public AirportRepository(Map<String, Booking> expectedPassengerList, List<BookingHist> checkedinPassengerList, Map<String, List<String>> airlineFlightCodes) {
+    public AirportRepository(Map<String, Booking> allRegisteredPassengers, Map<String, Booking> expectedPassengerList, List<BookingHist> checkedinPassengerList, Map<String, List<String>> airlineFlightCodes) {
+        this.allRegisteredPassengers = allRegisteredPassengers;
         this.expectedPassengerList = expectedPassengerList;
         this.checkedinPassengerList = checkedinPassengerList;
         this.airlineFlightCodes = airlineFlightCodes;
@@ -50,15 +53,29 @@ public class AirportRepository {
         return nextAvailableCounter;
     }
 
-    // TODO: solo va a funcionar con los expectedPassengers (y no los que ya pasaron) con esta impl
+    private boolean flightCodeAlreadyExistsForOtherAirlines(String currentAirline, List<String> flightCodes) {
+        for (Map.Entry<String, List<String>> entry : airlineFlightCodes.entrySet()) {
+            if (!entry.getKey().equals(currentAirline)
+                    && entry.getValue().stream().anyMatch(flightCodes::contains)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public synchronized void addPassenger(Booking booking) {
-        if (expectedPassengerList.containsKey(booking.getBookingCode()))
+        if (allRegisteredPassengers.containsKey(booking.getBookingCode()))
             throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
 
-        if(!airlineFlightCodes.containsKey(booking.getAirlineName()))
+        if (flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode())))
+            throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
+
+        if (!airlineFlightCodes.containsKey(booking.getAirlineName()))
             airlineFlightCodes.put(booking.getAirlineName(), new ArrayList<>());
+
         airlineFlightCodes.get(booking.getAirlineName()).add(booking.getFlightCode());
 
+        allRegisteredPassengers.put(booking.getBookingCode(), booking);
         expectedPassengerList.put(booking.getBookingCode(), booking);
     }
 
@@ -85,10 +102,24 @@ public class AirportRepository {
         return sectors.get(sectorName).getCounterGroupMap();
     }
 
+    private boolean allFlightCodeRegistered(List<String> flightCodes) {
+        Collection<List<String>> flights = airlineFlightCodes.values();
+        Set<String> allFlightCodes = flights.stream().flatMap(List::stream).collect(Collectors.toSet());
+        return allFlightCodes.containsAll(flightCodes);
+    }
+
+
     public Pair<Boolean, Integer> assignCounters(String sectorName, String airlineName, List<String> flightCodes, int counterCount) {
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }
+
+        if (!allFlightCodeRegistered(flightCodes))
+            throw new IllegalArgumentException("At least one of the flight codes have not been registered");
+
+        if (flightCodeAlreadyExistsForOtherAirlines(airlineName, flightCodes))
+            throw new IllegalArgumentException("A flight code is already assigned to another airline");
+
 
         CheckinAssignment checkinAssignment = new CheckinAssignment(airlineName, flightCodes, counterCount);
 
@@ -133,13 +164,13 @@ public class AirportRepository {
             ese rango y el sector en donde se encuentra.
      */
     //WARNING: Asquerosamente funcional.
-    public CounterGroup fetchCounter(String bookingCode){
-        if(!expectedPassengerList.containsKey(bookingCode))
+    public CounterGroup fetchCounter(String bookingCode) {
+        if (!expectedPassengerList.containsKey(bookingCode))
             throw new IllegalArgumentException("Booking code not found");
 
         Booking booking = expectedPassengerList.get(bookingCode);
         CounterGroup curr = null;
-        for(Sector sector : sectors.values()) {
+        for (Sector sector : sectors.values()) {
             curr = sector.fetchCounter(booking.getFlightCode());
             if (curr != null)
                 return curr;
@@ -160,11 +191,11 @@ public class AirportRepository {
             El pasajero ya ingresó en la cola del rango
             El pasajero ya realizó el check-in de la reserva
      */
-    public CounterGroup passengerCheckin(String bookingCode, String sectorName, int counterFrom){
-        if(!expectedPassengerList.containsKey(bookingCode))
-             throw new IllegalArgumentException("Booking code not found or user checked-in");
+    public CounterGroup passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
+        if (!expectedPassengerList.containsKey(bookingCode))
+            throw new IllegalArgumentException("Booking code not found or user checked-in");
 
-        if(!sectors.containsKey(sectorName))
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
         Booking booking = expectedPassengerList.get(bookingCode);

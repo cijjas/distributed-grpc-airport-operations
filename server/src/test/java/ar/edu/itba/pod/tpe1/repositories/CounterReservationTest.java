@@ -1,5 +1,7 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
+import ar.edu.itba.pod.tpe1.TestUtils;
+import ar.edu.itba.pod.tpe1.models.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.Pair;
@@ -16,7 +18,7 @@ public class CounterReservationTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new ArrayList<>(), new HashMap<>());
+        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new ArrayList<>(), new HashMap<>());
     }
 
     @Test
@@ -46,9 +48,10 @@ public class CounterReservationTest {
     @Test
     public final void listSectorsJoinAssignedCountersTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 34);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
         SortedMap<String, SortedMap<Integer, Integer>> sectors = airportRepository.listSectors();
 
@@ -83,9 +86,10 @@ public class CounterReservationTest {
     @Test
     public final void listCountersSectorSplitWhenAssignedTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 34);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
         SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(SECTOR_A);
 
@@ -101,13 +105,34 @@ public class CounterReservationTest {
         assertTrue(exception.getMessage().contains("Sector not found"));
     }
 
+    @Test
+    public final void assignCountersNoFlightCodesRegisteredTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10),
+                "Expected IllegalArgumentException at least one of the flight codes have not been registered");
+
+        assertTrue(exception.getMessage().contains("At least one of the flight codes have not been registered"));
+    }
+
+    @Test
+    public final void assignCountersAssignedToOtherAirlineTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_1), 10),
+                "Expected IllegalArgumentException flight code missmatch");
+
+        assertTrue(exception.getMessage().contains("A flight code is already assigned to another airline"));
+    }
+
+
     // TODO:
     /*
-    *   ○ No se agregaron pasajeros esperados con el código de vuelo, para al menos uno
-        de los vuelos solicitados
-        ○ Se agregaron pasajeros esperados con el código de vuelo pero con otra aerolínea,
-        para al menos uno de los vuelos solicitados
-        ○ Ya existe al menos un mostrador asignado para al menos uno de los vuelos
+    *   ○ Ya existe al menos un mostrador asignado para al menos uno de los vuelos
         solicitados (no se permiten agrandar rangos de mostradores asignados)
         ○ Ya existe una solicitud pendiente de un rango de mostradores para al menos uno
         de los vuelos solicitados (no se permiten reiterar asignaciones pendientes)
@@ -138,9 +163,10 @@ public class CounterReservationTest {
     @Test
     public final void freeCountersSuccessTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 34);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
         airportRepository.freeCounters(SECTOR_A, AIRLINE_A, 1);
 
@@ -153,9 +179,10 @@ public class CounterReservationTest {
     public final void freeCountersWrongSectorTest() {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addSector(SECTOR_B);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 34);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> airportRepository.freeCounters(SECTOR_B, AIRLINE_A, 1),
@@ -167,9 +194,10 @@ public class CounterReservationTest {
     @Test
     public final void freeCountersWrongAirlineTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 34);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> airportRepository.freeCounters(SECTOR_A, AIRLINE_B, 1),
@@ -178,9 +206,56 @@ public class CounterReservationTest {
         assertTrue(exception.getMessage().contains("Counter does not correspond to requested airline"));
     }
 
-    // TODO:
-    // Existen pasajeros esperando a ser atendidos en la cola del rango -> Funciona, no se pueden agregar pass todv.
+    @Test
+    public final void checkinCountersSectorNotFoundTest() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.checkInCounters(SECTOR_A, 1, AIRLINE_A),
+                "Expected IllegalArgumentException since sector not found");
 
+        assertTrue(exception.getMessage().contains("Sector not found"));
+    }
+
+    @Test
+    public final void checkinCountersWrongCountersTest() {
+        airportRepository.addSector(SECTOR_A);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.checkInCounters(SECTOR_A, 1, AIRLINE_A),
+                "Expected IllegalArgumentException since no counter group starts at requested counter");
+
+        assertTrue(exception.getMessage().contains("No counter groups start on counter"));
+    }
+
+    @Test
+    public final void checkinCountersWrongAirlineTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+
+        airportRepository.addCounters(SECTOR_A, 15);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> airportRepository.checkInCounters(SECTOR_A, 1, AIRLINE_B),
+                "Expected IllegalArgumentException since airlines don't match");
+
+        assertTrue(exception.getMessage().contains("Counter does not correspond to requested airline"));
+    }
+
+    @Test
+    public final void checkinCountersTest() {
+        airportRepository.addSector(SECTOR_A);
+
+        airportRepository.addCounters(SECTOR_A, 15);
+        airportRepository.addPassenger(PASSENGER_A);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+        airportRepository.passengerCheckin(PASSENGER_A.getBookingCode(), SECTOR_A, 1);
+
+        List<BookingHist> checkins = airportRepository.checkInCounters(SECTOR_A, 1, AIRLINE_A);
+
+        assertEquals(10, checkins.size());
+        assertNotNull(checkins.get(0).getAirlineName());
+        assertNull(checkins.get(1).getAirlineName());
+    }
 
     @Test
     public final void listPendingAssignmentsNotExistTest() {
@@ -194,9 +269,11 @@ public class CounterReservationTest {
     @Test
     public final void listPendingAssignmentsTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+        airportRepository.addPassenger(PASSENGER_B);
 
-        Pair<Boolean, Integer> firstRet = airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
-        Pair<Boolean, Integer> secondRet = airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        Pair<Boolean, Integer> firstRet = airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+        Pair<Boolean, Integer> secondRet = airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_2), 10);
 
         List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
         assertEquals(2, checkinAssignments.size());
@@ -209,8 +286,9 @@ public class CounterReservationTest {
     @Test
     public final void listPendingAssignmentsAddedSizeAfterTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
         airportRepository.addCounters(SECTOR_A, 34);
 
         List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
@@ -224,10 +302,12 @@ public class CounterReservationTest {
     @Test
     public final void listPendingAssignmentsFreeCountersTest() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+        airportRepository.addPassenger(PASSENGER_B);
 
         airportRepository.addCounters(SECTOR_A, 15);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
-        airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10);
+        airportRepository.assignCounters(SECTOR_A, AIRLINE_B, List.of(FLIGHT_CODE_2), 10);
 
         List<CheckinAssignment> checkinAssignments = airportRepository.listPendingAssignments(SECTOR_A);
         assertEquals(1, checkinAssignments.size());
@@ -243,11 +323,12 @@ public class CounterReservationTest {
     @Test
     public final void dummyTestForTesting() {
         airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
 
         airportRepository.addCounters(SECTOR_A, 10);
 
-        System.out.println(airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10));
-        System.out.println(airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1, FLIGHT_CODE_2), 10));
+        System.out.println(airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10));
+        System.out.println(airportRepository.assignCounters(SECTOR_A, AIRLINE_A, List.of(FLIGHT_CODE_1), 10));
 
         printCounters(airportRepository.listCounters(SECTOR_A));
 
@@ -261,36 +342,5 @@ public class CounterReservationTest {
 
     }
 
-    private void printSectors() {
-        SortedMap<String, SortedMap<Integer, Integer>> sectors = airportRepository.listSectors();
 
-        for (Map.Entry<String, SortedMap<Integer, Integer>> entry : sectors.entrySet()) {
-            System.out.println(entry.getKey());
-            printCountersFromInt(entry.getValue());
-            System.out.println();
-        }
-    }
-
-    private void printCountersFromInt(SortedMap<Integer, Integer> counterGroupMap) {
-        for (Map.Entry<Integer, Integer> counterGroupEntry : counterGroupMap.entrySet()) {
-            int from = counterGroupEntry.getKey();
-            int to = from + counterGroupEntry.getValue() - 1;
-            System.out.print("   (" + from + " - " + to + ')');
-        }
-
-    }
-
-    private void printCounters(SortedMap<Integer, CounterGroup> counterGroupMap) {
-        for (Map.Entry<Integer, CounterGroup> counterGroupEntry : counterGroupMap.entrySet()) {
-            int from = counterGroupEntry.getKey();
-            int to = from + counterGroupEntry.getValue().getCounterCount() - 1;
-            CounterGroup counterGroup = counterGroupEntry.getValue();
-            if (counterGroup.isActive()) {
-                System.out.println("(" + from + " - " + to + ")\t" + counterGroup.getAirlineName() + "\t" + counterGroup.getFlightCodes().toString() + "\t" + counterGroup.getPendingPassengers().size());
-            } else {
-                System.out.println("(" + from + " - " + to + ")\t-\t-\t-");
-            }
-        }
-
-    }
 }

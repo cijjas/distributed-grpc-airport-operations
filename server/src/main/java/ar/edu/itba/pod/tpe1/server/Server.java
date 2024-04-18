@@ -20,6 +20,7 @@ public class Server {
         io.grpc.Server server = ServerBuilder.forPort(port)
                 .addService(new AdminServant(new AirportRepository(
                         new HashMap<>(),
+                        new HashMap<>(),
                         new ArrayList<>(),
                         new HashMap<>()
                 )))
