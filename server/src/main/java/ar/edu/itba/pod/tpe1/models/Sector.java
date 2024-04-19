@@ -15,6 +15,7 @@ public class Sector {
 
     private final SortedMap<Integer, CounterGroup> counterGroupMap;
 
+    @Getter
     private final String name;
 
 
@@ -176,10 +177,6 @@ public class Sector {
 
     public SortedMap<Integer, CounterGroup> listCounters(int fromVal, int toVal) {
         return counterGroupMap.headMap(toVal + 1).tailMap(fromVal - 1);
-    }
-
-    public String getName() {
-        return name;
     }
 
 }

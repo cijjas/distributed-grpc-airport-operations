@@ -10,10 +10,6 @@ import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -24,7 +20,6 @@ import java.util.stream.Stream;
 public class ManifestAction implements Action {
     ManagedChannel channel;
     AdminClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(AdminClient.class);
 
     public ManifestAction(ManagedChannel channel, AdminClientArguments arguments) {
         this.channel = channel;
@@ -37,7 +32,7 @@ public class ManifestAction implements Action {
         if (manifestPath.isPresent()) {
             manifest(channel, manifestPath.get());
         } else {
-            logger.error("Input path is required for 'manifest' action.");
+            System.out.println("Input path is required for 'manifest' action.");
         }
     }
 
@@ -55,7 +50,7 @@ public class ManifestAction implements Action {
                             serverResponse.getPassenger().getFlightCode());
                     System.out.println(message);
                 } else {
-                    logger.warn("Received non-OK status: {}", serverResponse.getStatus().getMessage());
+                    System.out.println(serverResponse.getStatus().getMessage());
                 }
             }
 
@@ -91,11 +86,11 @@ public class ManifestAction implements Action {
             finishLatch.await();
             channel.shutdownNow();
             if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
-                logger.error("Channel did not terminate within the allowed time");
+                System.out.println("Channel did not terminate within the allowed time");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            logger.error("Operation was interrupted", e);
+            System.out.println("Interrupted while waiting for channel to terminate");
         } finally {
             if (!channel.isShutdown()) {
                 channel.shutdownNow();

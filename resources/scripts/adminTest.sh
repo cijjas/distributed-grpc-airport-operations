@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 sh adminClient.sh -DserverAddress=localhost:50051 -Daction=addSector -Dsector=A;
 sh adminClient.sh -DserverAddress=localhost:50051 -Daction=addSector -Dsector=B;
 sh adminClient.sh -DserverAddress=localhost:50051 -Daction=addSector -Dsector=C;
@@ -20,4 +21,5 @@ sh adminClient.sh -DserverAddress=localhost:50051 -Daction=addCounters -Dsector=
 sh adminClient.sh -DserverAddress=localhost:50051 -Daction=addCounters -Dsector=A -Dcounters=100;
 
 
+sh adminClient.sh -DserverAddress=localhost:50051 -Daction=manifest -DinPath=../manifest.csv;
 sh counterClient.sh -DserverAddress=localhost:50051 -Daction=listSectors;

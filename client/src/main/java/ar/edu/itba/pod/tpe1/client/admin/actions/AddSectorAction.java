@@ -11,15 +11,12 @@ import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public class AddSectorAction implements Action {
     ManagedChannel channel;
     AdminClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(AdminClient.class);
 
     public AddSectorAction(ManagedChannel channel, AdminClientArguments arguments) {
         this.channel = channel;
@@ -32,7 +29,7 @@ public class AddSectorAction implements Action {
         if (sectorName.isPresent()) {
             addSector(channel, sectorName.get());
         } else {
-            logger.error("Sector name is required for 'addSector' action.");
+            System.out.println("Sector name is required for 'addSector' action.");
         }
     }
 

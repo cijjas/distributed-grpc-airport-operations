@@ -8,14 +8,11 @@ import ar.edu.itba.pod.tpe1.client.counter.CounterClient;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 public class FreeCountersAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(CounterClient.class);
 
     public FreeCountersAction(ManagedChannel channel, CounterClientArguments arguments) {
         this.channel = channel;
@@ -25,18 +22,20 @@ public class FreeCountersAction implements Action {
     @Override
     public void execute() {
         try {
-            freeCounters(channel, arguments.getCounterFrom(), arguments.getAirline());
+            freeCounters(channel, arguments.getSector(),  arguments.getCounterFrom(), arguments.getAirline());
         } catch (Exception e) {
-            logger.error("Failed to free counters", e);
+            System.out.println("Failed to free counters");
+            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -Dairline");
         }
     }
 
-    private void freeCounters(ManagedChannel channel, Integer counterFrom, String airline) {
+    private void freeCounters(ManagedChannel channel,String sector,  Integer counterFrom, String airline) {
         CounterServiceGrpc.CounterServiceBlockingStub stub = CounterServiceGrpc.newBlockingStub(channel);
         Optional<FreeCountersResponse> response = Optional.ofNullable(stub.freeCounters(
             FreeCountersRequest.newBuilder()
                     .setCounterFrom(counterFrom)
                     .setAirlineName(airline)
+                    .setSectorName(sector)
                     .build()));
 
         response.ifPresentOrElse(
@@ -54,7 +53,7 @@ public class FreeCountersAction implements Action {
                     freeCountersResponse.getCounterTo(),
                     freeCountersResponse.getSectorName());
         } else {
-            logger.error("Error freeing counters: {}", freeCountersResponse.getStatus().getMessage());
+            System.out.println(freeCountersResponse.getStatus().getMessage());
         }
     }
 

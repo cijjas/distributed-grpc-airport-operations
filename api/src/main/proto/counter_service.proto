@@ -44,9 +44,12 @@ message ListCountersRequest {
 }
 
 message Counter {
+  // if counter is not active, airline_name is "-" and fli  ght_codes is empty
   string airline_name = 1;
-  CounterRange counter_range = 2;
   repeated string flight_codes = 3;
+
+  CounterRange counter_range = 2;
+  // is 0 if there is no one in line
   int32 people_in_line = 4;
 }
 
@@ -103,7 +106,7 @@ message Checkin {
 message CheckinCountersResponse {
   repeated Checkin checkins = 1;
   StatusResponse status = 2;
-  // no testoy seguro si aca viene algo
+  repeated int32 idle_counters = 3;
 }
 
 message ListPendingAssignmentsResponse {

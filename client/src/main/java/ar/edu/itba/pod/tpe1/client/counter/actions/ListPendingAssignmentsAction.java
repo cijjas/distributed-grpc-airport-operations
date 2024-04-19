@@ -17,8 +17,8 @@ import java.util.Optional;
 public class ListPendingAssignmentsAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(CounterClient.class);
-    private static final String HEADER = "Counters\t Airline\t Flights\n";
+    private static final String HEADER = String.format("%-10s %-25s %-25s\n", "Counters", "Airline", "Flights");
+    private static final String HASHTAG_DIVIDER= "#".repeat(55);
 
     public ListPendingAssignmentsAction(ManagedChannel channel, CounterClientArguments arguments) {
         this.arguments = arguments;
@@ -30,7 +30,8 @@ public class ListPendingAssignmentsAction implements Action {
         try {
             listPendingAssignments(channel, arguments.getSector());
         } catch (Exception e) {
-            logger.error("Failed to list pending assignments", e);
+            System.out.println("Failed to list pending assignments");
+            System.out.println("Should have parameter: -Dsector");
         }
     }
 
@@ -48,14 +49,15 @@ public class ListPendingAssignmentsAction implements Action {
     private void handleResponse(ListPendingAssignmentsResponse listPendingAssignmentsResponse) {
         if (listPendingAssignmentsResponse.getStatus().getCode() == Status.OK.getCode().value()) {
             System.out.println(HEADER);
+            System.out.println(HASHTAG_DIVIDER);
             listPendingAssignmentsResponse.getPendingAssignmentsList().forEach(this::printAssignment);
         } else {
-            logger.error("Error listing pending assignments: {}", listPendingAssignmentsResponse.getStatus().getMessage());
+            System.out.println(listPendingAssignmentsResponse.getStatus().getMessage());
         }
     }
 
     private void printAssignment(PendingAssignment pendingAssignment) {
-        System.out.printf("%d\t %s\t %s\n",
+        System.out.printf("%-10d %-25s %-25s \n",
                 pendingAssignment.getCounterCount(),
                 pendingAssignment.getAirlineName(),
                 String.join("|", pendingAssignment.getFlightCodesList()));

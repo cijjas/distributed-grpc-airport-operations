@@ -12,22 +12,20 @@ import java.util.Optional;
 
 public class PassengerClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(PassengerClient.class);
 
     public static void main(String[] args) throws InterruptedException {
-        logger.info("tpe1-g7 PassengerClient Starting ...");
         PassengerClientParser parser = new PassengerClientParser();
         Optional<PassengerClientArguments> arguments = parser.getPassengerClientArguments(args);
 
         if(arguments.isEmpty()){
-            logger.error("No arguments provided");
+            System.out.println("No arguments provided.");
             return;
         }
 
         ManagedChannel channel =  ChannelBuilder.buildChannel(arguments.get().getServerAddress());
         PassengerClientAction action = arguments.get().getAction();
         if(action == null){
-            logger.error("No valid action selected.");
+            System.out.println("No valid action selected.");
             return;
         }
 

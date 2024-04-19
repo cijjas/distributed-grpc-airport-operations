@@ -62,7 +62,7 @@ public class CounterClientParser {
 
             return Optional.of(arguments);
         } catch (ParseException e) {
-            System.err.println("Error parsing command line arguments: " + e.getMessage());
+            System.out.println("Error parsing command line arguments: " + e.getMessage());
             return Optional.empty();
         }
     }

@@ -1,7 +1,9 @@
 package ar.edu.itba.pod.tpe1.models;
 
 import io.grpc.Status;
+import lombok.Getter;
 
+@Getter
 public class Booking {
     private final String airlineName;
     private final String flightCode;
@@ -11,18 +13,6 @@ public class Booking {
         this.airlineName = airlineName;
         this.flightCode = flightCode;
         this.bookingCode = bookingCode;
-    }
-
-    public String getAirlineName(){
-        return airlineName;
-    }
-
-    public String getFlightCode() {
-        return flightCode;
-    }
-
-    public String getBookingCode() {
-        return bookingCode;
     }
 
 }

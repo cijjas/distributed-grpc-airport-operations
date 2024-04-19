@@ -12,21 +12,19 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 public class QueryClient {
-    private static final Logger logger = LoggerFactory.getLogger(QueryClient.class);
 
     public static void main(String[] args) throws InterruptedException {
-        logger.info("tpe1-g7 QueryClient Starting ...");
         QueryClientParser parser = new QueryClientParser();
         Optional<QueryClientArguments> arguments = parser.getQueryClientArguments(args);
 
         if(arguments.isEmpty()){
-            logger.error("No arguments provided");
+            System.out.println("No arguments provided.");
             return;
         }
         ManagedChannel channel = ChannelBuilder.buildChannel(arguments.get().getServerAddress());
         QueryClientAction action = arguments.get().getAction();
         if(action == null){
-            logger.error("No valid action selected.");
+            System.out.println("No valid action selected.");
             return;
         }
 

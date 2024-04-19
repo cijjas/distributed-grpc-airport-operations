@@ -7,8 +7,6 @@ import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +14,6 @@ import java.util.Optional;
 public class ListSectorsAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(CounterClient.class);
     private static final String HEADER = "Sectors\t Counters";
 
     public ListSectorsAction(ManagedChannel channel,CounterClientArguments arguments) {
@@ -30,7 +27,8 @@ public class ListSectorsAction implements Action {
         try {
             listSectors(channel);
         } catch (Exception e) {
-            logger.error("Failed to list sectors", e);
+            System.out.println("Failed to list sectors");
+            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -DcounterTo");
         }
     }
 
@@ -47,10 +45,8 @@ public class ListSectorsAction implements Action {
     private void handleResponse(ListSectorsResponse response) {
         if (response.getStatus().getCode() == Status.OK.getCode().value()) {
             printSectors(response);
-        } else if (response.getStatus().getCode() == Status.NOT_FOUND.getCode().value()) {
-            System.out.println("No sectors found");
         } else {
-            System.out.println("Failed to list sectors");
+            System.out.println(response.getStatus().getMessage());
         }
     }
 

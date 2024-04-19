@@ -8,15 +8,11 @@ import ar.edu.itba.pod.tpe1.client.admin.AdminClient;
 import ar.edu.itba.pod.tpe1.client.admin.AdminClientArguments;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Optional;
 
 public class AddCountersAction implements Action {
     ManagedChannel channel;
     AdminClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(AdminClient.class);
 
     public AddCountersAction(ManagedChannel channel, AdminClientArguments arguments) {
         this.channel = channel;
@@ -30,7 +26,7 @@ public class AddCountersAction implements Action {
         if (sectorName.isPresent() && counterCount.isPresent()) {
             addCounters(channel, sectorName.get(), counterCount.get());
         } else {
-            logger.error("Sector name and counter count are required for 'addCounters' action.");
+            System.out.println("Sector name and counter count are required for 'addCounters' action.");
         }
     }
 
