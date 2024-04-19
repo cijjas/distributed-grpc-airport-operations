@@ -31,6 +31,13 @@ public class NotificationRepository {
         registeredAirlines.put(airlineName, new LinkedList<>());
     }
 
+    public boolean isAirlineRegistered(String airlineName){
+        return registeredAirlines.containsKey(airlineName);
+    }
+
+    public boolean hasNewNotifications(String airlineName){
+        return registeredAirlines.containsKey(airlineName) && !registeredAirlines.get(airlineName).isEmpty();
+    }
     public void unregisterAirline(String airlineName) {
         if(!registeredAirlines.containsKey(airlineName))
             throw new IllegalArgumentException("Airline Not Registered");

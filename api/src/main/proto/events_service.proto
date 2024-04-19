@@ -13,16 +13,11 @@ option java_multiple_files = true;
 
 
 service EventsService {
-  rpc Register(google.protobuf.StringValue) returns (RegisterResponse);
-  rpc Unregister(google.protobuf.StringValue) returns (UnregisterResponse);
+  rpc Register(google.protobuf.StringValue) returns (stream EventResponse);
+  rpc Unregister(google.protobuf.StringValue) returns (EventResponse);
 }
 
-message RegisterResponse {
-  string message = 1;
-  StatusResponse status = 2;
-}
-
-message UnregisterResponse {
+message EventResponse {
   string message = 1;
   StatusResponse status = 2;
 }
