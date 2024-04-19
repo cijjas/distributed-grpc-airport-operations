@@ -11,8 +11,10 @@ import java.util.Queue;
 @Setter
 @Getter
 public abstract class CounterGroup {
+    protected int counterStart;
     protected int counterCount;
-    public CounterGroup(int counterCount) {
+    public CounterGroup(int counterStart, int counterCount) {
+        this.counterStart = counterStart;
         this.counterCount = counterCount;
     }
 
