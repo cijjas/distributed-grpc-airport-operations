@@ -12,8 +12,8 @@ public class AssignedCounterGroup extends CounterGroup{
     private final List<String> flightCodes;
     private final Queue<Booking> pendingPassengers;
 
-    public AssignedCounterGroup(CheckinAssignment checkinAssignment) {
-        super(checkinAssignment.counterCount());
+    public AssignedCounterGroup(CheckinAssignment checkinAssignment, int counterStart) {
+        super(counterStart, checkinAssignment.counterCount());
         this.airlineName = checkinAssignment.airlineName();
         this.flightCodes = checkinAssignment.flightCodes();
 

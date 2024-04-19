@@ -22,7 +22,7 @@ public class Server {
         AirportRepository airportRepository = new AirportRepository(
                 new HashMap<>(),
                 new HashMap<>(),
-                new ArrayList<>(),
+                new HashMap<>(),
                 new HashMap<>()
         );
         io.grpc.Server server = ServerBuilder.forPort(port)

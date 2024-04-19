@@ -10,8 +10,8 @@ public class UnassignedCounterGroup extends CounterGroup {
 
     private static final String UNASSIGNED = "Counter is inactive";
 
-    public UnassignedCounterGroup(int counterCount) {
-        super(counterCount);
+    public UnassignedCounterGroup(int counterStart, int counterCount) {
+        super(counterStart, counterCount);
     }
 
     @Override

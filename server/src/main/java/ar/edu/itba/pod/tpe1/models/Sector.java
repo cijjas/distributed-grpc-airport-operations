@@ -4,24 +4,27 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.AssignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
+import ar.edu.itba.pod.tpe1.repositories.AirlineRepository;
 import lombok.Getter;
 
 import java.util.*;
 
 @Getter
 public class Sector {
-    //Pending to assing group (osea no tienen counters aun)
+    //Pending to assign group (no tienen counters aun)
     private final List<CheckinAssignment> pendingAssignmentsList;
 
     private final SortedMap<Integer, CounterGroup> counterGroupMap;
+    private final AirlineRepository airlineRepository;
 
     private final String name;
 
 
-    public Sector(String name) {
+    public Sector(String name, AirlineRepository airlineRepository) {
         pendingAssignmentsList = new LinkedList<>();
         counterGroupMap = new TreeMap<>();
         this.name = name;
+        this.airlineRepository = airlineRepository;
     }
 
     public CounterGroup fetchCounter(String flightCode) {
@@ -41,7 +44,7 @@ public class Sector {
             counterGroupMap.put(firstCounter, newCounterGroup);
         } else {
             CounterGroup prevCounterGroup = counterGroupMap.get(headMap.lastKey());
-            counterGroupMap.put(headMap.lastKey(), new UnassignedCounterGroup(newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount()));
+            counterGroupMap.put(headMap.lastKey(), new UnassignedCounterGroup(headMap.lastKey(), newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount()));
             counterGroupMap.remove(firstCounter);
             firstCounter = headMap.lastKey();
             newCounterGroup.setCounterCount(newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount());
@@ -54,7 +57,7 @@ public class Sector {
                 !tailMap.get(tailMap.firstKey()).isActive() &&
                 tailMap.firstKey() == firstCounter + newCounterGroup.getCounterCount()) {
             CounterGroup nextCounterGroup = counterGroupMap.get(tailMap.firstKey());
-            counterGroupMap.put(firstCounter, new UnassignedCounterGroup(newCounterGroup.getCounterCount() + nextCounterGroup.getCounterCount()));
+            counterGroupMap.put(firstCounter, new UnassignedCounterGroup(firstCounter, newCounterGroup.getCounterCount() + nextCounterGroup.getCounterCount()));
             counterGroupMap.remove(tailMap.firstKey());
             System.out.println("Merged");
         }
@@ -66,7 +69,9 @@ public class Sector {
         for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
             if (entry.getValue().getCounterCount() >= checkinAssignment.counterCount() && !entry.getValue().isActive()) {
                 splitUnoccupiedCounter(entry.getKey(), checkinAssignment.counterCount());
-                counterGroupMap.put(entry.getKey(), new AssignedCounterGroup(checkinAssignment));
+                AssignedCounterGroup assignedCounterGroup = new AssignedCounterGroup(checkinAssignment, entry.getKey());
+                counterGroupMap.put(entry.getKey(), assignedCounterGroup);
+                airlineRepository.assignCountersToFlights(name, entry.getKey(), assignedCounterGroup);
                 return new Pair<>(true, entry.getKey());
             }
         }
@@ -98,7 +103,7 @@ public class Sector {
 
         if (prevSize == counterGroupSize) return leftCounterGroup;
 
-        counterGroupMap.put(firstCount + counterGroupSize, new UnassignedCounterGroup(prevSize - counterGroupSize));
+        counterGroupMap.put(firstCount + counterGroupSize, new UnassignedCounterGroup(firstCount + counterGroupSize, prevSize - counterGroupSize));
 
         return leftCounterGroup;
     }
@@ -136,7 +141,7 @@ public class Sector {
             throw new IllegalArgumentException("Cannot free counters, there are passengers in line");
         }
 
-        addCounterGroup(counterFrom, new UnassignedCounterGroup(counterGroup.getCounterCount()));
+        addCounterGroup(counterFrom, new UnassignedCounterGroup(counterFrom, counterGroup.getCounterCount()));
         return counterGroup;
     }
 
