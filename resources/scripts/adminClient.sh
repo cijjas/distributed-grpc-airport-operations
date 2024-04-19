@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 CLIENT_JARS="../../client/target/tpe1-g7-client-2024.1Q/lib/jars/*"
 TARGET_CLIENT="ar.edu.itba.pod.tpe1.client.admin.AdminClient"
 

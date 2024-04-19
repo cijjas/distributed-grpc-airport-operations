@@ -15,23 +15,21 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 public class EventsClient {
-    private static final Logger logger = LoggerFactory.getLogger(EventsClient.class);
 
 
     public static void main(String[] args) throws InterruptedException {
-        logger.info("tpe1-g7 EventsClient Starting ...");
         EventsClientParser parser = new EventsClientParser();
         Optional<EventsClientArguments> arguments = parser.getEventsClientArguments(args);
 
         if(arguments.isEmpty()){
-            logger.error("No arguments provided");
+            System.out.println("No arguments provided.");
             return;
         }
 
         ManagedChannel channel = ChannelBuilder.buildChannel(arguments.get().getServerAddress());
         EventsClientAction action = arguments.get().getAction();
         if(action == null){
-            logger.error("No valid action selected.");
+            System.out.println("No valid action selected.");
             return;
         }
 

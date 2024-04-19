@@ -22,7 +22,6 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void addSector(StringValue request, StreamObserver<AddSectorResponse> responseObserver) {
         try {
-            System.out.printf("Adding sector %s%n", request.getValue());
             airportRepository.addSector(request.getValue());
             responseObserver.onNext(
                     AddSectorResponse.newBuilder()

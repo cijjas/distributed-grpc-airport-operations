@@ -1,7 +1,9 @@
 package ar.edu.itba.pod.tpe1.models;
 
 import lombok.Getter;
+import lombok.Setter;
 
+@Setter
 @Getter
 public class BookingHist extends Booking {
     private String sector;
@@ -22,11 +24,4 @@ public class BookingHist extends Booking {
         return new BookingHist(null, null, null, checkinCounter, null);
     }
 
-    public void setCheckinCounter(int checkinCounter) {
-        this.checkinCounter = checkinCounter;
-    }
-
-    public void setSector(String sector) {
-        this.sector = sector;
-    }
 }

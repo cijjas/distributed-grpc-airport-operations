@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.tpe1.client.counter.actions;
 
+import ar.edu.itba.pod.grpc.Checkin;
 import ar.edu.itba.pod.grpc.CheckinCountersRequest;
 import ar.edu.itba.pod.grpc.CheckinCountersResponse;
 import ar.edu.itba.pod.grpc.CounterServiceGrpc;
@@ -7,15 +8,14 @@ import ar.edu.itba.pod.tpe1.client.Action;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClient;
 import ar.edu.itba.pod.tpe1.client.counter.CounterClientArguments;
 import io.grpc.ManagedChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.grpc.Status;
 
+import java.util.List;
 import java.util.Optional;
 
 public class CheckinCountersAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(CounterClient.class);
 
     public CheckinCountersAction(ManagedChannel channel, CounterClientArguments arguments) {
         this.channel = channel;
@@ -27,7 +27,8 @@ public class CheckinCountersAction implements Action {
         try {
             checkinCounters(channel, arguments.getSector(), arguments.getCounterFrom(), arguments.getAirline());
         } catch (Exception e) {
-            logger.error("Failed to checkin counters", e);
+            System.out.println("Failed to checkin counters");
+            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -Dairline");
         }
     }
 
@@ -47,6 +48,29 @@ public class CheckinCountersAction implements Action {
     }
 
     private void handleResponse(CheckinCountersResponse checkinCountersResponse) {
+        if (checkinCountersResponse.getStatus().getCode() == Status.OK.getCode().value()) {
+            printCheckins(checkinCountersResponse.getCheckinsList());
+            if(!checkinCountersResponse.getIdleCountersList().isEmpty()){
+                for(Integer counter : checkinCountersResponse.getIdleCountersList()){
+                    System.out.printf("Counter %d is idle\n", counter);
+                }
+            }
+        } else {
+            System.out.println(checkinCountersResponse.getStatus().getMessage());
+        }
+    }
+
+    private void printCheckins(List<Checkin> checkins) {
+        checkins.forEach(this::printCheckin);
+    }
+
+    private void printCheckin(Checkin checkin) {
+        System.out.printf("Check-in successful of %s for flight %s at counter %d\n",
+                checkin.getBookingCode(),
+                checkin.getFlightCode(),
+                checkin.getCounterNumber()
+        );
 
     }
+
 }

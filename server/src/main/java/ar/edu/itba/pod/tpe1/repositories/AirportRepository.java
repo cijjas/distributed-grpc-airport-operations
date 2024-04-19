@@ -69,7 +69,6 @@ public class AirportRepository {
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
         SortedMap<String, SortedMap<Integer, Integer>> mappedSectors = new TreeMap<>();
-        System.out.println(sectors);
         if (sectors.isEmpty()) {
             throw new IllegalStateException("No sectors registered");
         }
@@ -124,6 +123,7 @@ public class AirportRepository {
     }
 
     public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom) {
+        System.out.println("hol "+ sectorName + " " + airlineName + " " + counterFrom);
         if (!sectors.containsKey(sectorName)) {
             throw new IllegalArgumentException("Sector not found");
         }

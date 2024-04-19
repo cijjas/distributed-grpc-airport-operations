@@ -11,13 +11,15 @@ import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ListCountersAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(CounterClient.class);
-    private static final String HEADER = "Counters\t Airline\t Flights\t People\n";
+    private static final String HEADER = String.format("%-15s %-25s %-25s %-10s\n", "Counters", "Airline", "Flights", "People");
+    private static final String HASHTAG_DIVIDER= "#".repeat(60);
 
     public ListCountersAction(ManagedChannel channel,CounterClientArguments arguments) {
         this.channel = channel;
@@ -29,13 +31,15 @@ public class ListCountersAction implements Action {
         try {
             listCounters(channel, arguments.getSector(), arguments.getCounterFrom(), arguments.getCounterTo());
         } catch (Exception e) {
-            logger.error("Failed to list counters", e);
+            System.out.println("Failed to list counters");
+            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -DcounterTo");
         }
     }
 
     private void listCounters(ManagedChannel channel, String sector, Integer counterFrom, Integer counterTo) {
         CounterServiceGrpc.CounterServiceBlockingStub stub = CounterServiceGrpc.newBlockingStub(channel);
-        Optional<ListCountersResponse> response = Optional.ofNullable(stub.listCounters(
+        Optional<ListCountersResponse> response = Optional.ofNullable(
+                stub.listCounters(
                 ListCountersRequest.newBuilder()
                         .setSectorName(sector)
                         .setCounterFrom(counterFrom)
@@ -51,30 +55,34 @@ public class ListCountersAction implements Action {
 
     private void handleResponse(ListCountersResponse response) {
         if (response.getStatus().getCode() == Status.OK.getCode().value()) {
-
             printCounters(response);
         } else {
-            logger.error("Error listing counters: {}", response.getStatus().getMessage());
+            System.out.println(response.getStatus().getMessage());
         }
     }
-
+    // TODO: estetic code
     private void printCounters(ListCountersResponse response) {
-        System.out.println(HEADER);
+        System.out.printf(HEADER);
+        System.out.println(HASHTAG_DIVIDER);
+        if(response.getCountersList().isEmpty()){
+            return;
+        }
         response.getCountersList().forEach(this::printCounter);
     }
 
+
     private void printCounter(Counter counter) {
-        System.out.printf("(%d-%d)\t %s\t %s\t %d",
-                counter.getCounterRange().getCounterFrom(),
-                counter.getCounterRange().getCounterTo(),
+        String people = counter.getPeopleInLine() == 0 ? "-" : String.valueOf(counter.getPeopleInLine());
+
+        String flightCodes = counter.getFlightCodesList().isEmpty() ? "-" :
+                String.join("|", counter.getFlightCodesList());
+
+        System.out.printf("%-15s %-25s %-25s %-10s\n",
+                String.format("(%d-%d)", counter.getCounterRange().getCounterFrom(), counter.getCounterRange().getCounterTo()),
                 counter.getAirlineName(),
-                counter.getFlightCodesList()
-                        .stream()
-                        .collect(StringBuilder::new,
-                                (sb, s) -> sb.append(s).append("|"), StringBuilder::append)
-                        .toString()
-                        .trim(),
-                counter.getPeopleInLine()
+                flightCodes,
+                people
         );
     }
+
 }
