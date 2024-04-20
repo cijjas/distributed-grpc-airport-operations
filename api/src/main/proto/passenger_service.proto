@@ -18,15 +18,22 @@ service PassengerService {
 }
 
 
+enum FlightStatus {
+  UNKNOWN = 0;
+  PENDING = 1;
+  CHECKING_IN = 2;
+  EXPIRED = 3;
+}
 
 message FetchCounterResponse {
   string flight_code = 1;
   string airline_name = 2;
-  int32 counter_from = 3;
-  int32 counter_to = 4;
-  string sector_name = 5;
-  int32 people_in_line = 6;
-  StatusResponse status = 7;
+  FlightStatus flight_status = 3;
+  optional int32 counter_from = 4;
+  optional int32 counter_to = 5;
+  optional string sector_name = 6;
+  optional int32 people_in_line = 7;
+  StatusResponse status = 8;
 }
 
 message PassengerCheckinRequest {

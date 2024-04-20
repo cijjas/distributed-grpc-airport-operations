@@ -3,6 +3,7 @@ package ar.edu.itba.pod.tpe1.servants;
 import ar.edu.itba.pod.grpc.*;
 import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
+import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.Pair;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 import ar.edu.itba.pod.tpe1.models.Sector;
@@ -25,38 +26,8 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
     @Override
     public void fetchCounter(StringValue request, StreamObserver<FetchCounterResponse> responseObserver) {
         try {
-            Triple<CounterGroup, Booking, String> counterWithBooking =  airportRepository.fetchCounter(request.getValue());
-            CounterGroup counters = counterWithBooking.getLeft();
-            Booking booking = counterWithBooking.getMiddle();
-            String sectorName = counterWithBooking.getRight();
-            if(counters == null) {
-                responseObserver.onNext(
-                        FetchCounterResponse.newBuilder()
-                                .setStatus(StatusResponse.newBuilder()
-                                        .setCode(Status.OK.getCode().value())
-                                        .setMessage("Requested booking flight has no counter assigned yet.")
-                                        .build())
-                                .setAirlineName(booking.getAirlineName())
-                                .setFlightCode(booking.getFlightCode())
-                                .build()
-                );
-            }
-            else {
-                responseObserver.onNext(
-                        FetchCounterResponse.newBuilder()
-                                .setStatus(StatusResponse.newBuilder()
-                                        .setCode(Status.OK.getCode().value())
-                                        .setMessage("Fetch counter successfully")
-                                        .build())
-                                .setCounterFrom(counters.getCounterStart())
-                                .setCounterTo(counters.getCounterStart() + counters.getCounterCount() -1)
-                                .setAirlineName(counters.getAirlineName())
-                                .setFlightCode(booking.getFlightCode())
-                                .setSectorName(sectorName)
-                                .setPeopleInLine(counters.getPendingPassengers().size()) // CHEQUEAR
-                                .build()
-                );
-            }
+            FlightStatusInfo counterWithBooking =  airportRepository.fetchCounter(request.getValue());
+
 
         } catch (IllegalArgumentException e) {
             responseObserver.onNext(
