@@ -1,5 +1,7 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
+import ar.edu.itba.pod.grpc.CheckInStatus;
+import ar.edu.itba.pod.grpc.Checkin;
 import ar.edu.itba.pod.tpe1.models.*;
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
@@ -156,24 +158,24 @@ public class AirportRepository {
         return sectors.get(sectorName).listPendingAssignments();
     }
 
-    public Triple<CounterGroup, Booking, String> fetchCounter(String bookingCode) {
+    //WARNING: Asquerosamente funcional.
+    public CounterGroup fetchCounter(String bookingCode) {
         if (!expectedPassengerList.containsKey(bookingCode))
-            throw new IllegalArgumentException("No expected passenger with requested booking code");
+            throw new IllegalArgumentException("Booking code not found");
 
         Booking booking = expectedPassengerList.get(bookingCode);
         CounterGroup curr = null;
         for (Sector sector : sectors.values()) {
             curr = sector.fetchCounter(booking.getFlightCode());
             if (curr != null)
-                return new Triple<>(curr, booking, sector.getName());
+                return curr;
         }
-        return new Triple<>(null, booking, null);
+        return null;
     }
 
-    // TOdo FALTAN tipos de errores
-    public Pair<Booking, CounterGroup> passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
+    public CounterGroup passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
         if (!expectedPassengerList.containsKey(bookingCode))
-            throw new IllegalArgumentException("No expected passenger with requested booking code or passenger already checked in");
+            throw new IllegalArgumentException("Booking code not found or user checked-in");
 
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
@@ -181,7 +183,7 @@ public class AirportRepository {
         Booking booking = expectedPassengerList.get(bookingCode);
         CounterGroup toRet = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
         expectedPassengerList.remove(bookingCode);
-        return new Pair<>(booking, toRet);
+        return toRet;
     }
 
     public PassengerStatusInfo passengerStatus(String bookingCode) {
@@ -190,7 +192,7 @@ public class AirportRepository {
 
         Booking booking = checkedinPassengerList.get(bookingCode);
         if (booking != null) {
-            return new PassengerStatusInfo(PassengerStatus.ALREADY_CHECKED_IN,
+            return new PassengerStatusInfo(CheckInStatus.CHECKED_IN,
                     booking,
                     checkedinPassengerList.get(bookingCode).getSector(),
                     null);
@@ -206,14 +208,14 @@ public class AirportRepository {
 
         booking = expectedPassengerList.get(bookingCode);
         if (booking != null) {
-            return new PassengerStatusInfo(PassengerStatus.EXPECTED,
+            return new PassengerStatusInfo(CheckInStatus.NOT_CHECKED_IN,
                     booking,
                     sectorAndCounter.getLeft(),
                     counterGroup);
         }
 
         booking = counterGroup.getPendingPassengers().stream().filter(b -> b.getBookingCode().equals(bookingCode)).findFirst().orElseThrow(IllegalStateException::new);
-        return new PassengerStatusInfo(PassengerStatus.IN_QUEUE,
+        return new PassengerStatusInfo(CheckInStatus.AWAITING,
                 booking,
                 sectorAndCounter.getLeft(),
                 counterGroup);

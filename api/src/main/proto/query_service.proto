@@ -1,22 +1,52 @@
-//syntax = "proto3";
-//
-//package service;
-//
-//import "google/protobuf/wrappers.proto";
-//import "google/protobuf/empty.proto";
-//
-//
-//option java_package = "ar.edu.itba.pod.grpc";
-//option java_outer_classname = "QueryServiceModel";
-//option java_multiple_files = true;
-//
-//
-//service QueryService {
-//  rpc Counters(google.protobuf.StringValue) returns (google.protobuf.StringValue);
-//  rpc Checkins(CheckinsRequest) returns (google.protobuf.StringValue);
-//}
-//
-//message CheckinsRequest {
-//  string sector_name = 1;
-//  string airline_name = 2;
-//}
+syntax = "proto3";
+
+package service;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+
+option java_package = "ar.edu.itba.pod.grpc";
+option java_outer_classname = "QueryServiceModel";
+option java_multiple_files = true;
+
+
+service QueryService {
+  rpc Counters(CountersRequest) returns (CountersResponse);
+  rpc Checkins(CheckinsRequest) returns (CheckinsResponse);
+}
+
+message CountersRequest {
+  optional string sector_name = 1;
+}
+
+message CountersResponse {
+  repeated CounterGroup counters = 1;
+
+  message CounterGroup {
+    string sector_name = 1;
+    int32 counter_from = 2;
+    int32 counter_to = 3;
+    string airline_name = 4;
+    repeated string flight_codes = 5;
+    int32 people_in_line = 6;
+  }
+}
+
+message CheckinsRequest {
+  optional string sector_name = 1;
+  optional string airline_name = 2;
+}
+
+
+message CheckinsResponse {
+  repeated Checkin checkins = 1;
+
+  message Checkin {
+    string sector_name = 1;
+    int32 counter_number = 2;
+    string airline_name = 3;
+    string flight_code = 4;
+    string booking_code = 5;
+  }
+}
