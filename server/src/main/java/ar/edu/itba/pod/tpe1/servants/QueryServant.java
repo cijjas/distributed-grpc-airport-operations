@@ -31,15 +31,28 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
 
             List<CountersResponse.CounterGroup> counterGroupsList = new ArrayList<>();
             for (Sector sector : counters.values()) {
-                for (CounterGroup counterGroup : sector.getCounterGroupMap().values()) {
-                    counterGroupsList.add(CountersResponse.CounterGroup.newBuilder()
-                            .setSectorName(sector.getName())
-                            .setCounterFrom(counterGroup.getCounterStart())
-                            .setCounterTo(counterGroup.getCounterStart() + counterGroup.getCounterCount() - 1)
-                            .setAirlineName(counterGroup.getAirlineName())
-                            .addAllFlightCodes(counterGroup.getFlightCodes())
-                            .setPeopleInLine(counterGroup.getPendingPassengers().size())
-                            .build());
+                if (sector != null) {
+                    for (CounterGroup counterGroup : sector.getCounterGroupMap().values()) {
+                        if (counterGroup.isActive()) {
+                            counterGroupsList.add(CountersResponse.CounterGroup.newBuilder()
+                                    .setSectorName(sector.getName())
+                                    .setCounterFrom(counterGroup.getCounterStart())
+                                    .setCounterTo(counterGroup.getCounterStart() + counterGroup.getCounterCount() - 1)
+                                    .setAirlineName(counterGroup.getAirlineName())
+                                    .addAllFlightCodes(counterGroup.getFlightCodes())
+                                    .setPeopleInLine(counterGroup.getPendingPassengers().size())
+                                    .build());
+                        } else {
+                            counterGroupsList.add(CountersResponse.CounterGroup.newBuilder()
+                                    .setSectorName(sector.getName())
+                                    .setCounterFrom(counterGroup.getCounterStart())
+                                    .setCounterTo(counterGroup.getCounterStart() + counterGroup.getCounterCount() - 1)
+                                    .setAirlineName("")
+                                    .addAllFlightCodes(List.of())
+                                    .setPeopleInLine(-1)
+                                    .build());
+                        }
+                    }
                 }
             }
 

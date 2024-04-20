@@ -206,7 +206,7 @@ public class AirportRepository {
         if (nextAvailableCounter == 1)
             throw new IllegalStateException("No counters registered");
 
-        if (sectorName == null)
+        if (sectorName == null || sectorName.isEmpty())
             return sectors;
 
         SortedMap<String, Sector> toRet = new TreeMap<>();

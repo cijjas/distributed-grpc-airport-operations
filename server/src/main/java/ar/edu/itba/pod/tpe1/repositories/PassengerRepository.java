@@ -66,10 +66,10 @@ public class PassengerRepository {
 
         Stream<BookingHist> stream = checkedinPassengerList.values().stream();
 
-        if (sectorName != null)
+        if (sectorName != null && !sectorName.isEmpty())
             stream = stream.filter(bookingHist -> bookingHist.getSector().equals(sectorName));
 
-        if (airlineName != null)
+        if (airlineName != null && !airlineName.isEmpty())
             stream = stream.filter(bookingHist -> bookingHist.getAirlineName().equals(airlineName));
 
         return stream.collect(Collectors.toList());
