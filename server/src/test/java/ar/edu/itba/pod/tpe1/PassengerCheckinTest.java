@@ -1,9 +1,9 @@
-package ar.edu.itba.pod.tpe1.repositories;
+package ar.edu.itba.pod.tpe1;
 
-import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
-import ar.edu.itba.pod.tpe1.models.Sector;
-import ar.edu.itba.pod.tpe1.models.Triple;
+import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
+import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
+import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.fetchCounter(BOOKING_CODE_1),
                 "Expected IllegalArgumentException since booking code was not found");
 
-        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code"));
+        assertTrue(exception.getMessage().contains("Booking code not found"));
     }
 
     @Test
@@ -35,9 +35,9 @@ public class PassengerCheckinTest {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addPassenger(PASSENGER_A);
 
-        Triple<CounterGroup, Booking, String> counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNull(counterGroup.getLeft());
+        assertNull(counterGroup);
     }
 
     @Test
@@ -47,10 +47,10 @@ public class PassengerCheckinTest {
         airportRepository.addCounters(SECTOR_A, 34);
         airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
 
-        Triple<CounterGroup, Booking, String> counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNotNull(counterGroup.getLeft());
-        assertEquals(PASSENGER_A.getAirlineName(), counterGroup.getLeft().getAirlineName());
+        assertNotNull(counterGroup);
+        assertEquals(PASSENGER_A.getAirlineName(), counterGroup.getAirlineName());
     }
 
     @Test
@@ -59,7 +59,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since booking code was not found");
 
-        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
+        assertTrue(exception.getMessage().contains("Booking code not found"));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
+        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
     }
 
     @Test
@@ -130,7 +130,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
+        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
     }
 
     @Test
@@ -165,14 +165,14 @@ public class PassengerCheckinTest {
         airportRepository.addCounters(SECTOR_A, 34);
         airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
 
-        Triple<Booking, CounterGroup, Integer> returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
+        PassengerStatusInfo returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
 
-        assertSame(PASSENGER_A.getAirlineName(), returnVal.getLeft().getAirlineName());
-        assertSame(PASSENGER_A.getFlightCode(), returnVal.getLeft().getFlightCode());
-        assertSame(PASSENGER_A.getBookingCode(), returnVal.getLeft().getBookingCode());
-        assertEquals(1, returnVal.getMiddle().getCounterStart());
-        assertEquals(10, returnVal.getMiddle().getCounterCount());
-        assertEquals(-1, returnVal.getRight());
+        assertSame(PASSENGER_A.getAirlineName(), returnVal.getBooking().getAirlineName());
+        assertSame(PASSENGER_A.getFlightCode(), returnVal.getBooking().getFlightCode());
+        assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
+        assertEquals(1, returnVal.getCounterGroup().getCounterStart());
+        assertEquals(10, returnVal.getCounterGroup().getCounterCount());
+        assertEquals(PassengerStatus.EXPECTED, returnVal.getPassengerStatus());
     }
 
     @Test
@@ -183,13 +183,13 @@ public class PassengerCheckinTest {
         airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
         airportRepository.passengerCheckin(PASSENGER_A.getBookingCode(), SECTOR_A, 1);
 
-        Triple<Booking, CounterGroup, Integer> returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
+        PassengerStatusInfo returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
 
-        assertSame(PASSENGER_A.getAirlineName(), returnVal.getLeft().getAirlineName());
-        assertSame(PASSENGER_A.getFlightCode(), returnVal.getLeft().getFlightCode());
-        assertSame(PASSENGER_A.getBookingCode(), returnVal.getLeft().getBookingCode());
-        assertEquals(1, returnVal.getMiddle().getCounterStart());
-        assertEquals(1, returnVal.getRight());
+        assertSame(PASSENGER_A.getAirlineName(), returnVal.getBooking().getAirlineName());
+        assertSame(PASSENGER_A.getFlightCode(), returnVal.getBooking().getFlightCode());
+        assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
+        assertEquals(1, returnVal.getCounterGroup().getCounterStart());
+        assertEquals(PassengerStatus.IN_QUEUE, returnVal.getPassengerStatus());
     }
 
     @Test
@@ -201,12 +201,12 @@ public class PassengerCheckinTest {
         airportRepository.passengerCheckin(PASSENGER_A.getBookingCode(), SECTOR_A, 1);
         airportRepository.checkInCounters(SECTOR_A, 1, PASSENGER_A.getAirlineName());
 
-        Triple<Booking, CounterGroup, Integer> returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
+        PassengerStatusInfo returnVal = airportRepository.passengerStatus(PASSENGER_A.getBookingCode());
 
-        assertSame(PASSENGER_A.getAirlineName(), returnVal.getLeft().getAirlineName());
-        assertSame(PASSENGER_A.getFlightCode(), returnVal.getLeft().getFlightCode());
-        assertSame(PASSENGER_A.getBookingCode(), returnVal.getLeft().getBookingCode());
-        assertNull(returnVal.getMiddle());
-        assertEquals(1, returnVal.getRight());
+        assertSame(PASSENGER_A.getAirlineName(), returnVal.getBooking().getAirlineName());
+        assertSame(PASSENGER_A.getFlightCode(), returnVal.getBooking().getFlightCode());
+        assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
+        assertNull(returnVal.getCounterGroup());
+        assertEquals(PassengerStatus.ALREADY_CHECKED_IN, returnVal.getPassengerStatus());
     }
 }

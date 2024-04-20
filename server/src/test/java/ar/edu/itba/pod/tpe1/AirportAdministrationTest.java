@@ -1,8 +1,6 @@
-package ar.edu.itba.pod.tpe1.repositories;
+package ar.edu.itba.pod.tpe1;
 
-import ar.edu.itba.pod.tpe1.models.Booking;
-import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
-import ar.edu.itba.pod.tpe1.models.Sector;
+import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

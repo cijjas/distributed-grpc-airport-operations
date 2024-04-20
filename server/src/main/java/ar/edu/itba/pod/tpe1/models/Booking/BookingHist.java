@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.tpe1.models;
+package ar.edu.itba.pod.tpe1.models.Booking;
 
 import lombok.Getter;
 import lombok.Setter;

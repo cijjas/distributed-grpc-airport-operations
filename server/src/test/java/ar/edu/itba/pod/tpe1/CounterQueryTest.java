@@ -1,11 +1,11 @@
-package ar.edu.itba.pod.tpe1.repositories;
+package ar.edu.itba.pod.tpe1;
 
-import ar.edu.itba.pod.tpe1.models.BookingHist;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.Sector;
+import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;

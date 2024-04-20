@@ -1,7 +1,6 @@
 package ar.edu.itba.pod.tpe1.server;
 
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
-import ar.edu.itba.pod.tpe1.repositories.CheckinRepository;
 import ar.edu.itba.pod.tpe1.servants.AdminServant;
 import ar.edu.itba.pod.tpe1.servants.CounterServant;
 import io.grpc.ServerBuilder;
@@ -9,11 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Server {
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) throws InterruptedException, IOException {
         logger.info(" Server Starting ...");

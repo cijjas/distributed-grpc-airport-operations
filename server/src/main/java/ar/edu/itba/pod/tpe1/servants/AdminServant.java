@@ -2,7 +2,7 @@ package ar.edu.itba.pod.tpe1.servants;
 
 
 import ar.edu.itba.pod.grpc.*;
-import ar.edu.itba.pod.tpe1.models.Booking;
+import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;

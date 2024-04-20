@@ -1,7 +1,7 @@
 package ar.edu.itba.pod.tpe1.servants;
 
 import ar.edu.itba.pod.grpc.*;
-import ar.edu.itba.pod.tpe1.models.BookingHist;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.Pair;
