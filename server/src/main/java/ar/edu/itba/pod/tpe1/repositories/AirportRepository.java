@@ -1,17 +1,14 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
 import ar.edu.itba.pod.grpc.CheckInStatus;
-import ar.edu.itba.pod.grpc.Checkin;
-import ar.edu.itba.pod.grpc.CheckInStatus;
+import ar.edu.itba.pod.grpc.FlightStatus;
 import ar.edu.itba.pod.tpe1.models.*;
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
-import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatus;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
-import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 
 import java.util.*;

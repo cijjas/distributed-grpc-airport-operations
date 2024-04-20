@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 public class CheckinsAction implements Action {
     ManagedChannel channel;
     QueryClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(QueryClient.class);
 
 
     public CheckinsAction(ManagedChannel channel, QueryClientArguments arguments) {
@@ -32,7 +31,7 @@ public class CheckinsAction implements Action {
                 checkinsBySector(channel, arguments.getSector());
             }
         } catch (Exception e) {
-            logger.error("Failed to get checkins", e);
+            System.out.println("Failed to get checkins");
         }
     }
 

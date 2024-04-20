@@ -1,7 +1,6 @@
 package ar.edu.itba.pod.tpe1.servants;
 
 import ar.edu.itba.pod.grpc.*;
-import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.Pair;
@@ -26,9 +25,27 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
     @Override
     public void fetchCounter(StringValue request, StreamObserver<FetchCounterResponse> responseObserver) {
         try {
-            FlightStatusInfo counterWithBooking =  airportRepository.fetchCounter(request.getValue());
+            FlightStatusInfo flightInfo =  airportRepository.fetchCounter(request.getValue());
+            FlightStatus flightStatus = flightInfo.getFlightStatus();
 
+            FetchCounterResponse.Builder responseBuilder = FetchCounterResponse.newBuilder()
+                    .setStatus(StatusResponse.newBuilder()
+                            .setCode(Status.OK.getCode().value())
+                            .setMessage("Counter fetched successfully")
+                            .build())
+                    .setAirlineName(flightInfo.getAirlineName())
+                    .setFlightStatus(flightStatus)
+                    .setFlightCode(flightInfo.getFlightCode());
 
+            if(flightStatus == FlightStatus.CHECKING_IN){
+                responseBuilder
+                        .setCounterFrom(flightInfo.getCounterGroup().getCounterStart())
+                        .setCounterTo(flightInfo.getCounterGroup().getCounterStart() + flightInfo.getCounterGroup().getCounterCount() - 1)
+                        .setSectorName(flightInfo.getSectorName())
+                        .setPeopleInLine(flightInfo.getCounterGroup().getPendingPassengers().size());
+            }
+
+            responseObserver.onNext(responseBuilder.build());
         } catch (IllegalArgumentException e) {
             responseObserver.onNext(
                     FetchCounterResponse.newBuilder()
@@ -45,7 +62,38 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
 
     @Override
     public void passengerCheckin(PassengerCheckinRequest request, StreamObserver<PassengerCheckinResponse> responseObserver) {
+        try{
+            PassengerStatusInfo passengerStatusInfo = airportRepository.passengerCheckin(request.getBookingCode(), request.getSectorName(), request.getCounterFrom());
+            PassengerCheckinResponse.Builder responseBuilder = PassengerCheckinResponse.newBuilder()
+                    .setStatus(
+                            StatusResponse.newBuilder()
+                                    .setCode(Status.OK.getCode().value())
+                                    .setMessage("Passenger checked in successfully")
+                                    .build()
+                    )
+                    .setBookingCode(request.getBookingCode())
+                    .setFlightCode(passengerStatusInfo.getBooking().getFlightCode())
+                    .setAirlineName(passengerStatusInfo.getCounterGroup().getAirlineName())
+                    .setCounterFrom(passengerStatusInfo.getCounterGroup().getCounterStart())
+                    .setCounterTo(passengerStatusInfo.getCounterGroup().getCounterStart() + passengerStatusInfo.getCounterGroup().getCounterCount() - 1)
+                    .setSectorName(passengerStatusInfo.getSectorName())
+                    .setPeopleInLine(passengerStatusInfo.getCounterGroup().getPendingPassengers().size());
 
+            responseObserver.onNext(responseBuilder.build());
+        } catch (IllegalArgumentException e) {
+            responseObserver.onNext(
+                    PassengerCheckinResponse.newBuilder()
+                            .setStatus(
+                                    StatusResponse.newBuilder()
+                                            .setCode(Status.INVALID_ARGUMENT.getCode().value())
+                                            .setMessage(e.getMessage())
+                                            .build()
+                            )
+                            .build()
+            );
+        } finally {
+            responseObserver.onCompleted();
+        }
     }
 
     @Override

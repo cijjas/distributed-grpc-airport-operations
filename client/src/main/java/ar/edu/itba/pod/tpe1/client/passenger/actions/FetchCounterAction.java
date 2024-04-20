@@ -2,6 +2,7 @@ package ar.edu.itba.pod.tpe1.client.passenger.actions;
 
 import ar.edu.itba.pod.grpc.CounterServiceGrpc;
 import ar.edu.itba.pod.grpc.FetchCounterResponse;
+import ar.edu.itba.pod.grpc.FlightStatus;
 import ar.edu.itba.pod.grpc.PassengerServiceGrpc;
 import ar.edu.itba.pod.tpe1.client.Action;
 import ar.edu.itba.pod.tpe1.client.events.EventsClient;
@@ -55,17 +56,39 @@ public class FetchCounterAction implements Action {
     }
 
     private void handleResponse(FetchCounterResponse response) {
-        if(response.getStatus().getCode() == Status.OK.getCode().value()){
-            System.out.printf("Flight %s from %s is now checking in at counters (%d-%d) in Sector %s with %d people in line\n",
-                    response.getFlightCode(),
-                    response.getAirlineName(),
-                    response.getCounterFrom(),
-                    response.getCounterTo(),
-                    response.getSectorName(),
-                    response.getPeopleInLine()
-            );
+        if (response.getStatus().getCode() == Status.OK.getCode().value()) {
+            printFlightCheckInDetails(response);
         } else {
             System.out.println(response.getStatus().getMessage());
         }
     }
+
+    private void printFlightCheckInDetails(FetchCounterResponse response) {
+        FlightStatus flightStatus = response.getFlightStatus();
+        switch (flightStatus) {
+            case CHECKING_IN:
+                System.out.printf("Flight %s from %s is now checking in at counters (%d-%d) in Sector %s with %d people in line%n",
+                        response.getFlightCode(),
+                        response.getAirlineName(),
+                        response.getCounterFrom(),
+                        response.getCounterTo(),
+                        response.getSectorName(),
+                        response.getPeopleInLine());
+                break;
+            case PENDING:
+                System.out.printf("Flight %s from %s has no counters assigned yet%n",
+                        response.getFlightCode(),
+                        response.getAirlineName());
+                break;
+            case EXPIRED:
+                System.out.printf("Flight %s from %s has already expired%n",
+                        response.getFlightCode(),
+                        response.getAirlineName());
+                break;
+            default:
+                System.out.println("Unknown flight status.");
+                break;
+        }
+    }
+
 }

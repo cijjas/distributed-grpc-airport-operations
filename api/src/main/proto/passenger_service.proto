@@ -19,7 +19,7 @@ service PassengerService {
 
 
 enum FlightStatus {
-  UNKNOWN = 0;
+  DEFAULT_STATUS = 0;
   PENDING = 1;
   CHECKING_IN = 2;
   EXPIRED = 3;

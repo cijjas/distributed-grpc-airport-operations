@@ -1,9 +1,7 @@
 package ar.edu.itba.pod.tpe1;
 
-import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
-import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatus;
+import ar.edu.itba.pod.grpc.CheckInStatus;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
-import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -188,7 +186,7 @@ public class PassengerCheckinTest {
         assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
         assertEquals(1, returnVal.getCounterGroup().getCounterStart());
         assertEquals(10, returnVal.getCounterGroup().getCounterCount());
-        assertEquals(PassengerStatus.EXPECTED, returnVal.getPassengerStatus());
+        assertEquals(CheckInStatus.NOT_CHECKED_IN, returnVal.getCheckInStatus());
     }
 
     @Test
@@ -205,7 +203,7 @@ public class PassengerCheckinTest {
         assertSame(PASSENGER_A.getFlightCode(), returnVal.getBooking().getFlightCode());
         assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
         assertEquals(1, returnVal.getCounterGroup().getCounterStart());
-        assertEquals(PassengerStatus.IN_QUEUE, returnVal.getPassengerStatus());
+        assertEquals(CheckInStatus.AWAITING, returnVal.getCheckInStatus());
     }
 
     @Test
@@ -223,6 +221,6 @@ public class PassengerCheckinTest {
         assertSame(PASSENGER_A.getFlightCode(), returnVal.getBooking().getFlightCode());
         assertSame(PASSENGER_A.getBookingCode(), returnVal.getBooking().getBookingCode());
         assertNull(returnVal.getCounterGroup());
-        assertEquals(PassengerStatus.ALREADY_CHECKED_IN, returnVal.getPassengerStatus());
+        assertEquals(CheckInStatus.CHECKED_IN, returnVal.getCheckInStatus());
     }
 }
