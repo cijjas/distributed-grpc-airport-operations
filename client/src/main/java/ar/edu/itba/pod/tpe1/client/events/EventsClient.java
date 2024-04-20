@@ -22,7 +22,6 @@ public class EventsClient {
         Optional<EventsClientArguments> arguments = parser.getEventsClientArguments(args);
 
         if(arguments.isEmpty()){
-            System.out.println("No arguments provided.");
             return;
         }
 

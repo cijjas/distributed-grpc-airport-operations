@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.tpe1.models.FlightStatus;
 
+import ar.edu.itba.pod.grpc.FlightStatus;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import lombok.Getter;
 

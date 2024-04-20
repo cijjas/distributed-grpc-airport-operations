@@ -159,10 +159,7 @@ public class Sector {
             throw new IllegalArgumentException("Counter does not correspond to requested airline");
         }
 
-        return counterGroup.checkinCounters().stream().map(bookingHist -> {
-            bookingHist.setCheckinCounter(bookingHist.getCheckinCounter() + counterFrom);
-            return bookingHist;
-        }).toList();
+        return counterGroup.checkinCounters().stream().peek(bookingHist -> bookingHist.setCheckinCounter(bookingHist.getCheckinCounter() + counterFrom)).toList();
     }
 
     public List<CheckinAssignment> listPendingAssignments() {

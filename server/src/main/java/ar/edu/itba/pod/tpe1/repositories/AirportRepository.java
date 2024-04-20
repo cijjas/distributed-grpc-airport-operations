@@ -1,14 +1,14 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
+import ar.edu.itba.pod.grpc.CheckInStatus;
+import ar.edu.itba.pod.grpc.FlightStatus;
 import ar.edu.itba.pod.tpe1.models.*;
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
-import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatus;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
-import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 
 import java.util.*;
@@ -164,7 +164,7 @@ public class AirportRepository {
         Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
         CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
         passengerRepository.removeExpectedPassenger(bookingCode);
-        return new PassengerStatusInfo(PassengerStatus.IN_QUEUE, booking, sectorName, counterGroup);
+        return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
     }
 
     public PassengerStatusInfo passengerStatus(String bookingCode) {
@@ -173,7 +173,7 @@ public class AirportRepository {
 
         BookingHist bookingHist = passengerRepository.findCheckedinPassenger(bookingCode);
         if (bookingHist != null) {
-            return new PassengerStatusInfo(PassengerStatus.ALREADY_CHECKED_IN,
+            return new PassengerStatusInfo(CheckInStatus.CHECKED_IN,
                     bookingHist,
                     bookingHist.getSector(),
                     bookingHist.getCheckinCounter());
@@ -189,14 +189,14 @@ public class AirportRepository {
 
         booking = passengerRepository.getExpectedPassenger(bookingCode);
         if (booking != null) {
-            return new PassengerStatusInfo(PassengerStatus.EXPECTED,
+            return new PassengerStatusInfo(CheckInStatus.NOT_CHECKED_IN,
                     booking,
                     sectorAndCounter.getLeft(),
                     counterGroup);
         }
 
         booking = counterGroup.getPendingPassengers().stream().filter(b -> b.getBookingCode().equals(bookingCode)).findFirst().orElseThrow(IllegalStateException::new);
-        return new PassengerStatusInfo(PassengerStatus.IN_QUEUE,
+        return new PassengerStatusInfo(CheckInStatus.AWAITING,
                 booking,
                 sectorAndCounter.getLeft(),
                 counterGroup);

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 public class CheckinsAction implements Action {
     ManagedChannel channel;
     QueryClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(QueryClient.class);
 
 
     public CheckinsAction(ManagedChannel channel, QueryClientArguments arguments) {
@@ -23,13 +22,24 @@ public class CheckinsAction implements Action {
     @Override
     public void execute() {
         try {
-            checkins(channel);
+            if(arguments.getSector() == null){
+                System.out.println("hola sin");
+                checkins(channel);
+            }
+            else {
+                System.out.println("hola con");
+                checkinsBySector(channel, arguments.getSector());
+            }
         } catch (Exception e) {
-            logger.error("Failed to get checkins", e);
+            System.out.println("Failed to get checkins");
         }
     }
 
     private void checkins(ManagedChannel channel) {
         // TODO: Implement
+    }
+
+    private void checkinsBySector(ManagedChannel channel, String sector) {
+        // TODO:IMPLEMENT
     }
 }

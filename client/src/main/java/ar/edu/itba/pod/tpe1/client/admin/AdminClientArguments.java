@@ -8,27 +8,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+@Getter
 @Setter
 public class AdminClientArguments extends Arguments {
 
 
-    @Getter
     private AdminClientAction action;
     private String sector;
     private Integer counters;
     private Path inPath;
 
 
-    public Optional<String> getSector() {
-        return Optional.ofNullable(sector);
-    }
-
-    public Optional<Integer> getCounters() {
-        return Optional.ofNullable(counters);
-    }
-
-    public Optional<Path> getInPath() {
-        return Optional.of(inPath);
-    }
 
 }

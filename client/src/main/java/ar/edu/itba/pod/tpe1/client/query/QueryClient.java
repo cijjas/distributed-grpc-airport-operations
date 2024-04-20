@@ -18,7 +18,6 @@ public class QueryClient {
         Optional<QueryClientArguments> arguments = parser.getQueryClientArguments(args);
 
         if(arguments.isEmpty()){
-            System.out.println("No arguments provided.");
             return;
         }
         ManagedChannel channel = ChannelBuilder.buildChannel(arguments.get().getServerAddress());

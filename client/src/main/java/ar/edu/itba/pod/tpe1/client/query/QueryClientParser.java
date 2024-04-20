@@ -2,6 +2,7 @@ package ar.edu.itba.pod.tpe1.client.query;
 
 import org.apache.commons.cli.*;
 
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class QueryClientParser {
@@ -22,6 +23,7 @@ public class QueryClientParser {
         options.addOption("Dsector",true, "Sector name");
         options.addOption("Dcounter",true, "Counter value");
         options.addOption("Dairline",true, "Airline name");
+        options.addOption("DoutPath", true, "Output path");
     }
 
 
@@ -36,14 +38,15 @@ public class QueryClientParser {
             arguments.setAction(QueryClientAction.valueOf(cmd.getOptionValue("Daction").toUpperCase()));
             // Sector
             arguments.setSector(cmd.getOptionValue("Dsector"));
-            // Counter
-            arguments.setCounterValue(Integer.parseInt(cmd.getOptionValue("Dcounter")));
             // Airline
             arguments.setAirline(cmd.getOptionValue("Dairline"));
+            // Out path
+            String outPathValue = cmd.getOptionValue("DoutPath");
+            arguments.setOutPath(outPathValue != null ? Paths.get(outPathValue) : null);
 
             return Optional.of(arguments);
         } catch (ParseException e) {
-            System.err.println("Error parsing command line arguments: " + e.getMessage());
+            System.err.println(e.getMessage());
             return Optional.empty();
         }
     }

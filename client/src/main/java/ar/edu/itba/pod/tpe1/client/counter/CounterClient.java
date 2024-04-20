@@ -15,7 +15,6 @@ public class CounterClient {
         Optional<CounterClientArguments> arguments = parser.getCounterClientArguments(args);
 
         if(arguments.isEmpty()){
-            System.out.println("No arguments provided.");
             return;
         }
 

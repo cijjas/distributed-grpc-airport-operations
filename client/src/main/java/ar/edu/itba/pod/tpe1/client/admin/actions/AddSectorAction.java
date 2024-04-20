@@ -25,11 +25,11 @@ public class AddSectorAction implements Action {
 
     @Override
     public void execute() {
-        Optional<String> sectorName = arguments.getSector();
-        if (sectorName.isPresent()) {
-            addSector(channel, sectorName.get());
-        } else {
-            System.out.println("Sector name is required for 'addSector' action.");
+        try {
+            addSector(channel, arguments.getSector());
+        } catch (Exception e) {
+            System.out.println("Failed to add sector");
+            System.out.println("Should have arguments: -Dsector");
         }
     }
 

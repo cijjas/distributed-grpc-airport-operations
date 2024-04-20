@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 public class CountersAction implements Action {
     ManagedChannel channel;
     QueryClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(QueryClient.class);
 
 
     public CountersAction(ManagedChannel channel, QueryClientArguments arguments) {
@@ -23,7 +22,7 @@ public class CountersAction implements Action {
         try {
             counters(channel);
         } catch (Exception e) {
-            logger.error("Failed to get counters", e);
+            System.out.println("Failed to get counters");
         }
 
     }

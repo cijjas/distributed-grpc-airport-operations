@@ -1,39 +1,77 @@
-//syntax = "proto3";
-//
-//package service;
-//
-//import "airport_administration.proto";
-//import "google/protobuf/wrappers.proto";
-//import "google/protobuf/empty.proto";
-//
-//
-//option java_package = "ar.edu.itba.pod.grpc";
-//option java_outer_classname = "PassengerServiceModel";
-//option java_multiple_files = true;
-//
-//service PassengerService {
-//  rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
-//  rpc PassengerCheckin(PassengerCheckinRequest) returns (google.protobuf.StringValue);
-//  rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);
-//}
-//
-//
-//
-//message FetchCounterResponse {
-//  string sector_name = 1;
-//  int32 counter_from = 2;
-//  int32 counter_to = 3;
-//  int32 people_in_line = 4;
-//}
-//
-//message PassengerCheckinRequest {
-//  string sector_name = 1;
-//  int32 counter_from = 2;
-//  string booking_code = 3;
-//}
-//
-//message PassengerStatusResponse {
-//  string sector_name = 1;
-//  int32 counter_number = 2;
-//  string message = 3;
-//}
+syntax = "proto3";
+
+package service;
+
+import "status_response.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+
+option java_package = "ar.edu.itba.pod.grpc";
+option java_outer_classname = "PassengerServiceModel";
+option java_multiple_files = true;
+
+service PassengerService {
+  rpc FetchCounter(google.protobuf.StringValue) returns (FetchCounterResponse);
+  rpc PassengerCheckin(PassengerCheckinRequest) returns (PassengerCheckinResponse);
+  rpc PassengerStatus(google.protobuf.StringValue) returns (PassengerStatusResponse);
+}
+
+
+enum FlightStatus {
+  DEFAULT_STATUS = 0;
+  PENDING = 1;
+  CHECKING_IN = 2;
+  EXPIRED = 3;
+}
+
+message FetchCounterResponse {
+  string flight_code = 1;
+  string airline_name = 2;
+  FlightStatus flight_status = 3;
+  optional int32 counter_from = 4;
+  optional int32 counter_to = 5;
+  optional string sector_name = 6;
+  optional int32 people_in_line = 7;
+  StatusResponse status = 8;
+}
+
+message PassengerCheckinRequest {
+  string sector_name = 1;
+  int32 counter_from = 2;
+  string booking_code = 3;
+}
+
+message PassengerCheckinResponse {
+  string booking_code = 1;
+  string flight_code = 2;
+  string airline_name = 3;
+  int32 counter_from = 4;
+  int32 counter_to = 5;
+  string sector_name = 6;
+  int32 people_in_line = 7;
+  StatusResponse status = 8;
+}
+
+
+
+enum CheckInStatus {
+  UNKNOWN = 0;
+  CHECKED_IN = 1;
+  NOT_CHECKED_IN = 2;
+  AWAITING = 3;
+}
+
+message PassengerStatusResponse {
+  string booking_code = 1;
+  string flight_code = 2;
+  string airline_name = 3;
+  string sector_name = 4;
+  CheckInStatus status = 5;
+  optional int32 counter_from = 6;
+  optional int32 counter_to = 7;
+  optional int32 counter_checked = 8;
+  optional int32 people_in_line = 9;
+  StatusResponse status_response = 10;
+}
+
