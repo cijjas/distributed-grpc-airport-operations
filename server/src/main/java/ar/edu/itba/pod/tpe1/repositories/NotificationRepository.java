@@ -12,45 +12,45 @@ import java.util.stream.Collectors;
 public class NotificationRepository {
     private final Map<String, Queue<String>> registeredAirlines;
 
-    private final AirportRepository airportRepository;
+    private final PassengerRepository passengerRepository;
 
-    public NotificationRepository(AirportRepository airportRepository) {
+    public NotificationRepository(PassengerRepository passengerRepository) {
         this.registeredAirlines = new HashMap<>();
-        this.airportRepository = airportRepository;
+        this.passengerRepository = passengerRepository;
     }
 
     public void registerAirline(String airlineName) {
-        if(registeredAirlines.containsKey(airlineName)) {
-            throw new IllegalArgumentException("Airline Already Registered");
-        }
-        if(!airportRepository.hasPendingPassenger(airlineName)){
-            throw new IllegalArgumentException("No passengers for airline");
-        }
+        if (registeredAirlines.containsKey(airlineName))
+            throw new IllegalArgumentException("Airline already registered");
+
+        if (!passengerRepository.passengersExpectedForAirline(airlineName))
+            throw new IllegalArgumentException("No expected passengers found for airline");
 
         registeredAirlines.put(airlineName, new LinkedList<>());
     }
 
-    public boolean isAirlineRegistered(String airlineName){
+    public boolean isAirlineRegistered(String airlineName) {
         return registeredAirlines.containsKey(airlineName);
     }
 
-    public boolean hasNewNotifications(String airlineName){
+    public boolean hasNewNotifications(String airlineName) {
         return registeredAirlines.containsKey(airlineName) && !registeredAirlines.get(airlineName).isEmpty();
     }
+
     public void unregisterAirline(String airlineName) {
-        if(!registeredAirlines.containsKey(airlineName))
+        if (!registeredAirlines.containsKey(airlineName))
             throw new IllegalArgumentException("Airline Not Registered");
 
         this.registeredAirlines.remove(airlineName);
     }
 
-    private void addNotification(String airlineName, String notification){
+    private void addNotification(String airlineName, String notification) {
         registeredAirlines.get(airlineName).add(notification);
     }
 
 
-    public List<String> getLatestNotifications(String airlineName){
-        if(!registeredAirlines.containsKey(airlineName))
+    public List<String> getLatestNotifications(String airlineName) {
+        if (!registeredAirlines.containsKey(airlineName))
             throw new IllegalArgumentException("Airline Not Registered");
 
         List<String> toRet = new ArrayList<>();
@@ -61,11 +61,10 @@ public class NotificationRepository {
     }
 
 
-
-    public void addCheckinStartedNotification(String airlineName, AssignedCounterGroup group, int firstCounter, String sector){
+    public void addCheckinStartedNotification(String airlineName, AssignedCounterGroup group, int firstCounter, String sector) {
         //2 counters (3-4) in Sector C are now checking in passengers from AmericanAirlines AA123|AA124|AA125 flights
         //make it with a string builder
-        if(registeredAirlines.containsKey(airlineName)) {
+        if (registeredAirlines.containsKey(airlineName)) {
             StringBuilder sb = new StringBuilder();
             sb.append(group.getCounterCount())
                     .append(" counters (")
@@ -82,10 +81,11 @@ public class NotificationRepository {
         }
 
     }
-    public void addPassengerInQueueNotification(Booking booking, AssignedCounterGroup group, int firstCounter, int counterCount, String sector){
+
+    public void addPassengerInQueueNotification(Booking booking, AssignedCounterGroup group, int firstCounter, int counterCount, String sector) {
         //Booking ABC123 for flight AA123 from AmericanAirlines is now waiting to check-in on counters (2-4) in Sector C with 6 people in line
         //make it with string builder
-        if(registeredAirlines.containsKey(booking.getAirlineName())) {
+        if (registeredAirlines.containsKey(booking.getAirlineName())) {
             StringBuilder sb = new StringBuilder();
             sb.append("Booking ")
                     .append(booking.getBookingCode())
@@ -106,10 +106,11 @@ public class NotificationRepository {
         }
 
     }
-    public void addPassengerSuccessfulNotification(BookingHist booking, String sector){
+
+    public void addPassengerSuccessfulNotification(BookingHist booking, String sector) {
         //Check-in successful of XYZ345 for flight AA123 at counter 3 in Sector C
         //make it with string builder
-        if(registeredAirlines.containsKey(booking.getAirlineName())) {
+        if (registeredAirlines.containsKey(booking.getAirlineName())) {
             StringBuilder sb = new StringBuilder();
             sb.append("Check-in successful of ")
                     .append(booking.getBookingCode())
@@ -123,10 +124,11 @@ public class NotificationRepository {
             addNotification(booking.getAirlineName(), sector);
         }
     }
-    public void addCheckinEndedNotification(String airlineName, AssignedCounterGroup group, String sector){
+
+    public void addCheckinEndedNotification(String airlineName, AssignedCounterGroup group, String sector) {
         //Ended check-in for flights AA123|AA124|AA125 on counters (2-4) from Sector C
         //make it with string builder
-        if(registeredAirlines.containsKey(airlineName)) {
+        if (registeredAirlines.containsKey(airlineName)) {
             StringBuilder sb = new StringBuilder();
             sb.append("Ended check-in for flights ")
                     .append(group.getFlightCodes().stream().collect(Collectors.joining("|")))
@@ -136,10 +138,11 @@ public class NotificationRepository {
                     .append(sector);
         }
     }
-    public void addPendingAssignmentNotification(String airlineName, CheckinAssignment assignment, Sector sector){
+
+    public void addPendingAssignmentNotification(String airlineName, CheckinAssignment assignment, Sector sector) {
         //7 counters in Sector C for flights AA888|AA999 is pending with 5 other pendings ahead
         //make it with string builder
-        if(registeredAirlines.containsKey(airlineName)) {
+        if (registeredAirlines.containsKey(airlineName)) {
             StringBuilder sb = new StringBuilder();
             sb.append(assignment.counterCount())
                     .append(" counters in Sector ")
