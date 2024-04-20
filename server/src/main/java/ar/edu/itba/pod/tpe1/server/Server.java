@@ -3,6 +3,7 @@ package ar.edu.itba.pod.tpe1.server;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import ar.edu.itba.pod.tpe1.servants.AdminServant;
 import ar.edu.itba.pod.tpe1.servants.CounterServant;
+import ar.edu.itba.pod.tpe1.servants.QueryServant;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ public class Server {
                         airportRepository
                 ))
                 .addService(new CounterServant(
+                        airportRepository
+                ))
+                .addService(new QueryServant(
                         airportRepository
                 ))
                 .build();
