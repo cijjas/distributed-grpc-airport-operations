@@ -6,6 +6,8 @@ import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
+import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatus;
+import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 
@@ -18,6 +20,7 @@ public class AirportRepository {
     private final Map<String, Booking> allRegisteredPassengers;
     private final Map<String, Booking> expectedPassengerList;
     private final Map<String, BookingHist> checkedinPassengerList;
+    private final PassengerRepository passengerRepository;
     private final AirlineRepository airlineRepository;
     private final SortedMap<String, Sector> sectors;
 
@@ -27,6 +30,7 @@ public class AirportRepository {
         this.allRegisteredPassengers = allRegisteredPassengers;
         this.expectedPassengerList = expectedPassengerList;
         this.checkedinPassengerList = checkedinPassengerList;
+        this.passengerRepository = new PassengerRepository(allRegisteredPassengers, expectedPassengerList, checkedinPassengerList);
         this.airlineRepository = new AirlineRepository(airlineFlightCodes);
         this.sectors = new TreeMap<>();
         nextAvailableCounter = 1;
@@ -58,7 +62,7 @@ public class AirportRepository {
 
 
     public synchronized void addPassenger(Booking booking) {
-        if (allRegisteredPassengers.containsKey(booking.getBookingCode()))
+        if (passengerRepository.passengerWasRegistered(booking.getBookingCode()))
             throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
 
         if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode())))
@@ -67,8 +71,7 @@ public class AirportRepository {
         airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
         airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
 
-        allRegisteredPassengers.put(booking.getBookingCode(), booking);
-        expectedPassengerList.put(booking.getBookingCode(), booking);
+        passengerRepository.addNewPassenger(booking);
     }
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
@@ -156,22 +159,24 @@ public class AirportRepository {
         return sectors.get(sectorName).listPendingAssignments();
     }
 
-    //WARNING: Asquerosamente funcional.
-    public CounterGroup fetchCounter(String bookingCode) {
+    public FlightStatusInfo fetchCounter(String bookingCode) {
         if (!expectedPassengerList.containsKey(bookingCode))
             throw new IllegalArgumentException("Booking code not found");
 
         Booking booking = expectedPassengerList.get(bookingCode);
-        CounterGroup curr = null;
-        for (Sector sector : sectors.values()) {
-            curr = sector.fetchCounter(booking.getFlightCode());
-            if (curr != null)
-                return curr;
-        }
-        return null;
+        Pair<String, Integer> sectorAndCounter = airlineRepository.getSectorAndCounterFromAirlineAndFlight(booking.getAirlineName(), booking.getFlightCode());
+
+        if (sectorAndCounter == null || sectorAndCounter.getLeft() == null)
+            return new FlightStatusInfo(FlightStatus.PENDING, booking.getAirlineName(), booking.getFlightCode());
+
+        CounterGroup counterGroup = sectors.get(sectorAndCounter.getLeft()).getCounterGroupMap().get(sectorAndCounter.getRight());
+        if (counterGroup == null || !counterGroup.isActive() ||!counterGroup.getFlightCodes().contains(booking.getFlightCode()))
+            return new FlightStatusInfo(FlightStatus.EXPIRED, booking.getAirlineName(), booking.getFlightCode());
+
+        return new FlightStatusInfo(FlightStatus.CHECKING_IN, booking.getAirlineName(), booking.getFlightCode(), sectorAndCounter.getLeft(), counterGroup);
     }
 
-    public CounterGroup passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
+    public PassengerStatusInfo passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
         if (!expectedPassengerList.containsKey(bookingCode))
             throw new IllegalArgumentException("Booking code not found or user checked-in");
 
@@ -179,24 +184,25 @@ public class AirportRepository {
             throw new IllegalArgumentException("Sector not found");
 
         Booking booking = expectedPassengerList.get(bookingCode);
-        CounterGroup toRet = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
+        CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
         expectedPassengerList.remove(bookingCode);
-        return toRet;
+        return new PassengerStatusInfo(PassengerStatus.IN_QUEUE, booking, sectorName, counterGroup);
     }
 
     public PassengerStatusInfo passengerStatus(String bookingCode) {
-        if (!allRegisteredPassengers.containsKey(bookingCode))
+        if (!passengerRepository.passengerWasRegistered(bookingCode))
             throw new IllegalArgumentException("No expected passenger with requested booking code");
 
         Booking booking = checkedinPassengerList.get(bookingCode);
         if (booking != null) {
+            BookingHist bookingHist = checkedinPassengerList.get(bookingCode);
             return new PassengerStatusInfo(PassengerStatus.ALREADY_CHECKED_IN,
                     booking,
-                    checkedinPassengerList.get(bookingCode).getSector(),
-                    null);
+                    bookingHist.getSector(),
+                    bookingHist.getCheckinCounter());
         }
 
-        booking = allRegisteredPassengers.get(bookingCode);
+        booking = passengerRepository.getBookingData(bookingCode);
         Pair<String, Integer> sectorAndCounter = airlineRepository.getSectorAndCounterFromAirlineAndFlight(booking.getAirlineName(), booking.getFlightCode());
 
         if (sectorAndCounter == null || sectorAndCounter.getLeft() == null)

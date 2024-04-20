@@ -1,6 +1,8 @@
 package ar.edu.itba.pod.tpe1;
 
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
+import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatus;
+import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
@@ -35,9 +37,9 @@ public class PassengerCheckinTest {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addPassenger(PASSENGER_A);
 
-        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        FlightStatusInfo flightStatusInfo = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNull(counterGroup);
+        assertEquals(FlightStatus.PENDING, flightStatusInfo.getFlightStatus());
     }
 
     @Test
@@ -47,10 +49,24 @@ public class PassengerCheckinTest {
         airportRepository.addCounters(SECTOR_A, 34);
         airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
 
-        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        FlightStatusInfo flightStatusInfo = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNotNull(counterGroup);
-        assertEquals(PASSENGER_A.getAirlineName(), counterGroup.getAirlineName());
+        assertEquals(FlightStatus.CHECKING_IN, flightStatusInfo.getFlightStatus());
+        assertEquals(PASSENGER_A.getAirlineName(), flightStatusInfo.getAirlineName());
+    }
+
+    @Test
+    public final void fetchCountersExpiredTest() {
+        airportRepository.addSector(SECTOR_A);
+        airportRepository.addPassenger(PASSENGER_A);
+        airportRepository.addCounters(SECTOR_A, 34);
+        airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
+        airportRepository.freeCounters(SECTOR_A, PASSENGER_A.getAirlineName(), 1);
+
+        FlightStatusInfo flightStatusInfo = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+
+        assertEquals(FlightStatus.EXPIRED, flightStatusInfo.getFlightStatus());
+        assertEquals(PASSENGER_A.getAirlineName(), flightStatusInfo.getAirlineName());
     }
 
     @Test
