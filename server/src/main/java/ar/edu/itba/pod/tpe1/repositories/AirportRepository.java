@@ -1,9 +1,13 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
 import ar.edu.itba.pod.tpe1.models.*;
+import ar.edu.itba.pod.tpe1.models.Booking.Booking;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
+import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatus;
+import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 
 import java.util.*;
 import java.util.function.Function;
@@ -180,13 +184,16 @@ public class AirportRepository {
         return toRet;
     }
 
-    public Triple<Booking, CounterGroup, Integer> passengerStatus(String bookingCode) {
+    public PassengerStatusInfo passengerStatus(String bookingCode) {
         if (!allRegisteredPassengers.containsKey(bookingCode))
             throw new IllegalArgumentException("No expected passenger with requested booking code");
 
         Booking booking = checkedinPassengerList.get(bookingCode);
         if (booking != null) {
-            return new Triple<>(booking, null, checkedinPassengerList.get(bookingCode).getCheckinCounter());
+            return new PassengerStatusInfo(PassengerStatus.ALREADY_CHECKED_IN,
+                    booking,
+                    checkedinPassengerList.get(bookingCode).getSector(),
+                    null);
         }
 
         booking = allRegisteredPassengers.get(bookingCode);
@@ -199,11 +206,17 @@ public class AirportRepository {
 
         booking = expectedPassengerList.get(bookingCode);
         if (booking != null) {
-            return new Triple<>(booking, counterGroup, -1);
+            return new PassengerStatusInfo(PassengerStatus.EXPECTED,
+                    booking,
+                    sectorAndCounter.getLeft(),
+                    counterGroup);
         }
 
         booking = counterGroup.getPendingPassengers().stream().filter(b -> b.getBookingCode().equals(bookingCode)).findFirst().orElseThrow(IllegalStateException::new);
-        return new Triple<>(booking, counterGroup, 1);
+        return new PassengerStatusInfo(PassengerStatus.IN_QUEUE,
+                booking,
+                sectorAndCounter.getLeft(),
+                counterGroup);
     }
 
     public boolean hasPendingPassenger(String airlineName) {

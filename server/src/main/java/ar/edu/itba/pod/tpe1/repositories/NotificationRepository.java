@@ -1,10 +1,9 @@
 package ar.edu.itba.pod.tpe1.repositories;
 
-import ar.edu.itba.pod.tpe1.models.Booking;
-import ar.edu.itba.pod.tpe1.models.BookingHist;
+import ar.edu.itba.pod.tpe1.models.Booking.Booking;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.AssignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
-import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.Sector;
 
 import java.util.*;

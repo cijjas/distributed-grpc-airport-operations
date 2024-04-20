@@ -1,5 +1,7 @@
 package ar.edu.itba.pod.tpe1.models;
 
+import ar.edu.itba.pod.tpe1.models.Booking.Booking;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.AssignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;

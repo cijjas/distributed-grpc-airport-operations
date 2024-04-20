@@ -1,7 +1,7 @@
 package ar.edu.itba.pod.tpe1.models.CounterGroup;
 
-import ar.edu.itba.pod.tpe1.models.Booking;
-import ar.edu.itba.pod.tpe1.models.BookingHist;
+import ar.edu.itba.pod.tpe1.models.Booking.Booking;
+import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 
 import java.util.List;
 import java.util.Queue;
