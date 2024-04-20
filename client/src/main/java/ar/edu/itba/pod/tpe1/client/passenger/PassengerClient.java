@@ -18,7 +18,6 @@ public class PassengerClient {
         Optional<PassengerClientArguments> arguments = parser.getPassengerClientArguments(args);
 
         if(arguments.isEmpty()){
-            System.out.println("No arguments provided.");
             return;
         }
 

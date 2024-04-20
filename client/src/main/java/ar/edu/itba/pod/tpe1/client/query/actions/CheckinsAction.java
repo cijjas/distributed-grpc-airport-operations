@@ -23,7 +23,14 @@ public class CheckinsAction implements Action {
     @Override
     public void execute() {
         try {
-            checkins(channel);
+            if(arguments.getSector() == null){
+                System.out.println("hola sin");
+                checkins(channel);
+            }
+            else {
+                System.out.println("hola con");
+                checkinsBySector(channel, arguments.getSector());
+            }
         } catch (Exception e) {
             logger.error("Failed to get checkins", e);
         }
@@ -31,5 +38,9 @@ public class CheckinsAction implements Action {
 
     private void checkins(ManagedChannel channel) {
         // TODO: Implement
+    }
+
+    private void checkinsBySector(ManagedChannel channel, String sector) {
+        // TODO:IMPLEMENT
     }
 }

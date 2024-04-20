@@ -28,11 +28,11 @@ public class ManifestAction implements Action {
 
     @Override
     public void execute() {
-        Optional<Path> manifestPath = arguments.getInPath();
-        if (manifestPath.isPresent()) {
-            manifest(channel, manifestPath.get());
-        } else {
-            System.out.println("Input path is required for 'manifest' action.");
+        try {
+            manifest(channel, arguments.getInPath());
+        } catch (Exception e) {
+            System.out.println("Failed to manifest");
+            System.out.println("Should have arguments: -DinPath");
         }
     }
 

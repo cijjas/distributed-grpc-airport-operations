@@ -70,7 +70,6 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                         String airlineName;
                         List<String> flightCodes;
                         int peopleInLine;
-                        System.out.println(counterGroup.isActive());
                         if(counterGroup.isActive()) {
                             airlineName = counterGroup.getAirlineName();
                             flightCodes = counterGroup.getFlightCodes();
@@ -80,7 +79,6 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                             flightCodes = new ArrayList<>();
                             peopleInLine = 0;
                         }
-                        System.out.println("sending"+ counterIndex + " . " + airlineName + " " + flightCodes + " " + peopleInLine);
                         responseBuilder.addCounters(
                                 Counter.newBuilder()
                                         .setAirlineName(airlineName)

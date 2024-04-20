@@ -43,7 +43,7 @@ public class PassengerClientParser {
 
             return Optional.of(arguments);
         } catch (ParseException e) {
-            System.err.println("Error parsing command line arguments: " + e.getMessage());
+            System.err.println(e.getMessage());
             return Optional.empty();
         }
     }

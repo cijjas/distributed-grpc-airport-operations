@@ -2,6 +2,7 @@ package ar.edu.itba.pod.tpe1.repositories;
 
 import ar.edu.itba.pod.tpe1.models.Booking;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
+import ar.edu.itba.pod.tpe1.models.Sector;
 import ar.edu.itba.pod.tpe1.models.Triple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.fetchCounter(BOOKING_CODE_1),
                 "Expected IllegalArgumentException since booking code was not found");
 
-        assertTrue(exception.getMessage().contains("Booking code not found"));
+        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code"));
     }
 
     @Test
@@ -34,9 +35,9 @@ public class PassengerCheckinTest {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addPassenger(PASSENGER_A);
 
-        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        Triple<CounterGroup, Booking, String> counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNull(counterGroup);
+        assertNull(counterGroup.getLeft());
     }
 
     @Test
@@ -46,10 +47,10 @@ public class PassengerCheckinTest {
         airportRepository.addCounters(SECTOR_A, 34);
         airportRepository.assignCounters(SECTOR_A, PASSENGER_A.getAirlineName(), List.of(PASSENGER_A.getFlightCode()), 10);
 
-        CounterGroup counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
+        Triple<CounterGroup, Booking, String> counterGroup = airportRepository.fetchCounter(PASSENGER_A.getBookingCode());
 
-        assertNotNull(counterGroup);
-        assertEquals(PASSENGER_A.getAirlineName(), counterGroup.getAirlineName());
+        assertNotNull(counterGroup.getLeft());
+        assertEquals(PASSENGER_A.getAirlineName(), counterGroup.getLeft().getAirlineName());
     }
 
     @Test
@@ -58,7 +59,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since booking code was not found");
 
-        assertTrue(exception.getMessage().contains("Booking code not found"));
+        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
     }
 
     @Test
@@ -112,7 +113,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
+        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
     }
 
     @Test
@@ -129,7 +130,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
+        assertTrue(exception.getMessage().contains("No expected passenger with requested booking code or passenger already checked in"));
     }
 
     @Test

@@ -17,7 +17,6 @@ public class AdminClient {
         AdminClientParser parser = new AdminClientParser();
         Optional<AdminClientArguments> arguments = parser.getAdminClientArguments(args);
         if(arguments.isEmpty()){
-            System.out.println("No arguments provided.");
             return;
         }
 

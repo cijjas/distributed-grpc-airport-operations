@@ -11,7 +11,6 @@ public class PassengerCheckinAction implements Action {
 
     ManagedChannel channel;
     PassengerClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(PassengerClient.class);
 
 
     public PassengerCheckinAction(ManagedChannel channel, PassengerClientArguments arguments) {
@@ -25,7 +24,7 @@ public class PassengerCheckinAction implements Action {
         try {
             checkin(channel);
         } catch (Exception e) {
-            logger.error("Failed to checkin", e);
+            System.out.println("Failed to checkin");
         }
     }
 

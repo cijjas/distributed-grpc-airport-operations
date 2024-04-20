@@ -11,7 +11,6 @@ public class PassengerStatusAction implements Action {
 
     ManagedChannel channel;
     PassengerClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(PassengerClient.class);
 
 
     public PassengerStatusAction( ManagedChannel channel, PassengerClientArguments arguments) {
@@ -24,7 +23,7 @@ public class PassengerStatusAction implements Action {
         try {
             passengerStatus(channel);
         } catch (Exception e) {
-            logger.error("Failed to get status", e);
+            System.out.println("Failed to get status");
         }
     }
 

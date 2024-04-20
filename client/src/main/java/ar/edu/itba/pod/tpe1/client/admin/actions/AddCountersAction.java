@@ -21,12 +21,12 @@ public class AddCountersAction implements Action {
 
     @Override
     public void execute() {
-        Optional<String> sectorName = arguments.getSector();
-        Optional<Integer> counterCount = arguments.getCounters();
-        if (sectorName.isPresent() && counterCount.isPresent()) {
-            addCounters(channel, sectorName.get(), counterCount.get());
-        } else {
-            System.out.println("Sector name and counter count are required for 'addCounters' action.");
+        try{
+            addCounters(channel, arguments.getSector(), arguments.getCounters());
+        }
+        catch (Exception e){
+            System.out.println("Failed to add counters");
+            System.out.println("Should have arguments: -Dsector, -Dcounters");
         }
     }
 

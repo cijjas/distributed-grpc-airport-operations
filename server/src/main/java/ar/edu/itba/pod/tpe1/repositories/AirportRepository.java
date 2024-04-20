@@ -152,24 +152,24 @@ public class AirportRepository {
         return sectors.get(sectorName).listPendingAssignments();
     }
 
-    //WARNING: Asquerosamente funcional.
-    public CounterGroup fetchCounter(String bookingCode) {
+    public Triple<CounterGroup, Booking, String> fetchCounter(String bookingCode) {
         if (!expectedPassengerList.containsKey(bookingCode))
-            throw new IllegalArgumentException("Booking code not found");
+            throw new IllegalArgumentException("No expected passenger with requested booking code");
 
         Booking booking = expectedPassengerList.get(bookingCode);
         CounterGroup curr = null;
         for (Sector sector : sectors.values()) {
             curr = sector.fetchCounter(booking.getFlightCode());
             if (curr != null)
-                return curr;
+                return new Triple<>(curr, booking, sector.getName());
         }
-        return null;
+        return new Triple<>(null, booking, null);
     }
 
-    public CounterGroup passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
+    // TOdo FALTAN tipos de errores
+    public Pair<Booking, CounterGroup> passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
         if (!expectedPassengerList.containsKey(bookingCode))
-            throw new IllegalArgumentException("Booking code not found or user checked-in");
+            throw new IllegalArgumentException("No expected passenger with requested booking code or passenger already checked in");
 
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
@@ -177,7 +177,7 @@ public class AirportRepository {
         Booking booking = expectedPassengerList.get(bookingCode);
         CounterGroup toRet = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
         expectedPassengerList.remove(bookingCode);
-        return toRet;
+        return new Pair<>(booking, toRet);
     }
 
     public Triple<Booking, CounterGroup, Integer> passengerStatus(String bookingCode) {

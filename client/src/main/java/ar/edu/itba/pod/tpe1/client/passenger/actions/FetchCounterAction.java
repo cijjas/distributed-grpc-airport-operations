@@ -1,17 +1,23 @@
 package ar.edu.itba.pod.tpe1.client.passenger.actions;
 
+import ar.edu.itba.pod.grpc.CounterServiceGrpc;
+import ar.edu.itba.pod.grpc.FetchCounterResponse;
+import ar.edu.itba.pod.grpc.PassengerServiceGrpc;
 import ar.edu.itba.pod.tpe1.client.Action;
 import ar.edu.itba.pod.tpe1.client.events.EventsClient;
 import ar.edu.itba.pod.tpe1.client.passenger.PassengerClient;
 import ar.edu.itba.pod.tpe1.client.passenger.PassengerClientArguments;
+import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 public class FetchCounterAction implements Action {
     ManagedChannel channel;
     PassengerClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(PassengerClient.class);
 
 
 
@@ -24,13 +30,42 @@ public class FetchCounterAction implements Action {
     @Override
     public void execute() {
         try {
-            fetchCounter(channel);
+            fetchCounter(channel, arguments.getBooking());
         } catch (Exception e) {
-            logger.error("Failed to fetch counter", e);
+            System.out.println("Failed to fetch counter");
+            System.out.println("Should have parameters: -Dbooking");
         }
     }
 
-    private void fetchCounter(ManagedChannel channel) {
-        //TODO: Implement
+    private void fetchCounter(ManagedChannel channel, String booking) {
+        PassengerServiceGrpc.PassengerServiceBlockingStub stub = PassengerServiceGrpc.newBlockingStub(channel);
+        Optional<FetchCounterResponse> response = Optional.ofNullable(
+            stub.fetchCounter(
+                StringValue
+                    .newBuilder()
+                    .setValue(booking)
+                    .build()
+            )
+        );
+        response.ifPresentOrElse(
+            this::handleResponse,
+            () -> System.out.println("Failed to fetch counter")
+        );
+
+    }
+
+    private void handleResponse(FetchCounterResponse response) {
+        if(response.getStatus().getCode() == Status.OK.getCode().value()){
+            System.out.printf("Flight %s from %s is now checking in at counters (%d-%d) in Sector %s with %d people in line\n",
+                    response.getFlightCode(),
+                    response.getAirlineName(),
+                    response.getCounterFrom(),
+                    response.getCounterTo(),
+                    response.getSectorName(),
+                    response.getPeopleInLine()
+            );
+        } else {
+            System.out.println(response.getStatus().getMessage());
+        }
     }
 }
