@@ -1,17 +1,22 @@
 package ar.edu.itba.pod.tpe1.client.query.actions;
 
+import ar.edu.itba.pod.grpc.*;
 import ar.edu.itba.pod.tpe1.client.Action;
-import ar.edu.itba.pod.tpe1.client.passenger.PassengerClient;
-import ar.edu.itba.pod.tpe1.client.passenger.PassengerClientArguments;
-import ar.edu.itba.pod.tpe1.client.query.QueryClient;
 import ar.edu.itba.pod.tpe1.client.query.QueryClientArguments;
 import io.grpc.ManagedChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.grpc.Status;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 
 public class CheckinsAction implements Action {
     ManagedChannel channel;
     QueryClientArguments arguments;
+    private static final String HEADER = String.format("%-8s%-10s%-17s%-11s%-16s", "Sector", "Counter", "Airline", "Flight", "Booking");
+    private static final String HASHTAG_DIVIDER = "#".repeat(63);
 
 
     public CheckinsAction(ManagedChannel channel, QueryClientArguments arguments) {
@@ -22,25 +27,59 @@ public class CheckinsAction implements Action {
     @Override
     public void execute() {
         try {
-            System.out.println(arguments.getOutPath());
-            if(arguments.getSector() == null){
-                System.out.println("hola sin");
-                checkins(channel);
-            }
-            else {
-                System.out.println("hola con");
-                checkinsBySector(channel, arguments.getSector());
-            }
+            String sectorName = arguments.getSector() != null ? arguments.getSector() : "";
+            String airlineName = arguments.getAirline() != null ? arguments.getAirline() : "";
+
+            checkins(channel, sectorName, airlineName, arguments.getOutPath());
         } catch (Exception e) {
-            System.out.println("Failed to get checkins");
+            System.out.println("An error occurred fetching the checkins");
         }
     }
 
-    private void checkins(ManagedChannel channel) {
-        // TODO: Implement
+    private void checkins(ManagedChannel channel, String sectorName, String airlineName, Path outPath) {
+        QueryServiceGrpc.QueryServiceBlockingStub stub = QueryServiceGrpc.newBlockingStub(channel);
+        Optional<CheckinsResponse> response = Optional.ofNullable(
+                stub.checkins(
+                        CheckinsRequest.newBuilder()
+                                .setSectorName(sectorName)
+                                .setAirlineName(airlineName)
+                                .build())
+        );
+        response.ifPresentOrElse(
+                presentResponse -> handleResponse(presentResponse, outPath),
+                () -> System.out.println("Failed to list checkins")
+        );
     }
 
-    private void checkinsBySector(ManagedChannel channel, String sector) {
-        // TODO:IMPLEMENT
+    private void handleResponse(CheckinsResponse response, Path outPath) {
+        if (response.getStatus().getCode() == Status.OK.getCode().value()) {
+            printCheckinsToFile(response, outPath);
+        } else {
+            System.out.println(response.getStatus().getMessage());
+        }
     }
+
+    private void printCheckinsToFile(CheckinsResponse response, Path filePath) {
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(filePath))) {
+            writer.println(HEADER);
+            writer.println(HASHTAG_DIVIDER);
+            if (response.getCheckinsList().isEmpty()) {
+                return;
+            }
+            response.getCheckinsList().forEach(checkin -> printCheckinToFile(checkin, writer));
+        } catch (IOException e) {
+            System.out.println("An error occurred creating the file");
+        }
+    }
+
+    private void printCheckinToFile(CheckinsResponse.Checkin checkin, PrintWriter writer) {
+        writer.printf("%-8s%-10s%-17s%-11s%-16s\n",
+                checkin.getSectorName(),
+                checkin.getCounterNumber(),
+                checkin.getAirlineName(),
+                checkin.getFlightCode(),
+                checkin.getBookingCode()
+        );
+    }
+
 }

@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AirportRepository {
-    private final Map<String, Booking> allRegisteredPassengers;
-    private final Map<String, Booking> expectedPassengerList;
-    private final Map<String, BookingHist> checkedinPassengerList;
     private final PassengerRepository passengerRepository;
     private final AirlineRepository airlineRepository;
     private final SortedMap<String, Sector> sectors;
@@ -29,9 +26,6 @@ public class AirportRepository {
     private int nextAvailableCounter;
 
     public AirportRepository(Map<String, Booking> allRegisteredPassengers, Map<String, Booking> expectedPassengerList, Map<String, BookingHist> checkedinPassengerList, Map<String, List<Flight>> airlineFlightCodes) {
-        this.allRegisteredPassengers = allRegisteredPassengers;
-        this.expectedPassengerList = expectedPassengerList;
-        this.checkedinPassengerList = checkedinPassengerList;
         this.passengerRepository = new PassengerRepository(allRegisteredPassengers, expectedPassengerList, checkedinPassengerList);
         this.airlineRepository = new AirlineRepository(airlineFlightCodes);
         this.sectors = new TreeMap<>();
@@ -39,21 +33,18 @@ public class AirportRepository {
     }
 
     public synchronized void addSector(String sectorName) {
-        if (sectors.containsKey(sectorName)) {
+        if (sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector name already exists");
-        }
 
         sectors.put(sectorName, new Sector(sectorName, airlineRepository));
     }
 
     public synchronized Integer addCounters(String sectorName, int counterCount) {
-        if (!sectors.containsKey(sectorName)) {
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
 
-        if (counterCount <= 0) {
+        if (counterCount <= 0)
             throw new IllegalArgumentException("Counter count must be greater than 0");
-        }
 
         Sector sector = sectors.get(sectorName);
         sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(nextAvailableCounter, counterCount));
@@ -97,13 +88,11 @@ public class AirportRepository {
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
         SortedMap<String, SortedMap<Integer, Integer>> mappedSectors = new TreeMap<>();
-        if (sectors.isEmpty()) {
+        if (sectors.isEmpty())
             throw new IllegalStateException("No sectors registered");
-        }
 
-        for (Map.Entry<String, Sector> entry : sectors.entrySet()) {
+        for (Map.Entry<String, Sector> entry : sectors.entrySet())
             mappedSectors.put(entry.getKey(), entry.getValue().listGroupedCounters());
-        }
 
         return mappedSectors;
     }
@@ -117,21 +106,18 @@ public class AirportRepository {
     }
 
     public SortedMap<Integer, CounterGroup> listCounters(String sectorName, int fromVal, int toVal) {
-        if (!sectors.containsKey(sectorName)) {
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
 
-        if (toVal - fromVal < 0) {
+        if (toVal - fromVal < 0)
             throw new IllegalArgumentException("Requested range is not valid");
-        }
 
         return sectors.get(sectorName).listCounters(fromVal, toVal);
     }
 
     public Pair<Boolean, Integer> assignCounters(String sectorName, String airlineName, List<String> flightCodes, int counterCount) {
-        if (!sectors.containsKey(sectorName)) {
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
 
         if (!airlineRepository.allFlightCodesRegistered(flightCodes))
             throw new IllegalArgumentException("At least one of the flight codes have not been registered");
@@ -151,62 +137,57 @@ public class AirportRepository {
     }
 
     public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom) {
-        System.out.println("hol "+ sectorName + " " + airlineName + " " + counterFrom);
-        if (!sectors.containsKey(sectorName)) {
+        System.out.println("hol " + sectorName + " " + airlineName + " " + counterFrom);
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
 
         return sectors.get(sectorName).freeCounters(airlineName, counterFrom);
     }
 
     public List<BookingHist> checkInCounters(String sectorName, int counterFrom, String airlineName) {
-        if (!sectors.containsKey(sectorName)) {
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
+
         List<BookingHist> toRet = sectors.get(sectorName).checkinCounters(counterFrom, airlineName);
-        checkedinPassengerList.putAll(toRet.stream()
-                .filter(b -> b.getAirlineName() != null)
-                .peek(bh -> bh.setSector(sectorName))
-                .collect(Collectors.toMap(BookingHist::getBookingCode, Function.identity())));
+        passengerRepository.checkInPassengers(sectorName, toRet);
         return toRet;
     }
 
 
     public List<CheckinAssignment> listPendingAssignments(String sectorName) {
-        if (!sectors.containsKey(sectorName)) {
+        if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        }
 
         return sectors.get(sectorName).listPendingAssignments();
     }
 
     public FlightStatusInfo fetchCounter(String bookingCode) {
-        if (!expectedPassengerList.containsKey(bookingCode))
+        if (!passengerRepository.passengerIsExpected(bookingCode))
             throw new IllegalArgumentException("Booking code not found");
 
-        Booking booking = expectedPassengerList.get(bookingCode);
+        Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
         Pair<String, Integer> sectorAndCounter = airlineRepository.getSectorAndCounterFromAirlineAndFlight(booking.getAirlineName(), booking.getFlightCode());
 
         if (sectorAndCounter == null || sectorAndCounter.getLeft() == null)
             return new FlightStatusInfo(FlightStatus.PENDING, booking.getAirlineName(), booking.getFlightCode());
 
         CounterGroup counterGroup = sectors.get(sectorAndCounter.getLeft()).getCounterGroupMap().get(sectorAndCounter.getRight());
-        if (counterGroup == null || !counterGroup.isActive() ||!counterGroup.getFlightCodes().contains(booking.getFlightCode()))
+        if (counterGroup == null || !counterGroup.isActive() || !counterGroup.getFlightCodes().contains(booking.getFlightCode()))
             return new FlightStatusInfo(FlightStatus.EXPIRED, booking.getAirlineName(), booking.getFlightCode());
 
         return new FlightStatusInfo(FlightStatus.CHECKING_IN, booking.getAirlineName(), booking.getFlightCode(), sectorAndCounter.getLeft(), counterGroup);
     }
 
     public PassengerStatusInfo passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
-        if (!expectedPassengerList.containsKey(bookingCode))
+        if (!passengerRepository.passengerIsExpected(bookingCode))
             throw new IllegalArgumentException("Booking code not found or user checked-in");
 
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
-        Booking booking = expectedPassengerList.get(bookingCode);
+        Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
         CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
-        expectedPassengerList.remove(bookingCode);
+        passengerRepository.removeExpectedPassenger(bookingCode);
         return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
     }
 
@@ -214,16 +195,15 @@ public class AirportRepository {
         if (!passengerRepository.passengerWasRegistered(bookingCode))
             throw new IllegalArgumentException("No expected passenger with requested booking code");
 
-        Booking booking = checkedinPassengerList.get(bookingCode);
-        if (booking != null) {
-            BookingHist bookingHist = checkedinPassengerList.get(bookingCode);
+        BookingHist bookingHist = passengerRepository.findCheckedinPassenger(bookingCode);
+        if (bookingHist != null) {
             return new PassengerStatusInfo(CheckInStatus.CHECKED_IN,
-                    booking,
+                    bookingHist,
                     bookingHist.getSector(),
                     bookingHist.getCheckinCounter());
         }
 
-        booking = passengerRepository.getBookingData(bookingCode);
+        Booking booking = passengerRepository.getBookingData(bookingCode);
         Pair<String, Integer> sectorAndCounter = airlineRepository.getSectorAndCounterFromAirlineAndFlight(booking.getAirlineName(), booking.getFlightCode());
 
         if (sectorAndCounter == null || sectorAndCounter.getLeft() == null)
@@ -231,7 +211,7 @@ public class AirportRepository {
 
         CounterGroup counterGroup = sectors.get(sectorAndCounter.getLeft()).getCounterGroupMap().get(sectorAndCounter.getRight());
 
-        booking = expectedPassengerList.get(bookingCode);
+        booking = passengerRepository.getExpectedPassenger(bookingCode);
         if (booking != null) {
             return new PassengerStatusInfo(CheckInStatus.NOT_CHECKED_IN,
                     booking,
@@ -246,19 +226,11 @@ public class AirportRepository {
                 counterGroup);
     }
 
-    public boolean hasPendingPassenger(String airlineName) {
-        for (Booking booking : allRegisteredPassengers.values())
-            if (booking.getAirlineName().equals(airlineName))
-                return true;
-
-        return false;
-    }
-
     public SortedMap<String, Sector> counters(String sectorName) {
         if (nextAvailableCounter == 1)
             throw new IllegalStateException("No counters registered");
 
-        if (sectorName == null)
+        if (sectorName == null || sectorName.isEmpty())
             return sectors;
 
         SortedMap<String, Sector> toRet = new TreeMap<>();
@@ -267,20 +239,6 @@ public class AirportRepository {
     }
 
     public List<BookingHist> checkins(String sectorName, String airlineName) {
-        if (checkedinPassengerList.isEmpty())
-            throw new IllegalStateException("No checkins registered");
-
-        Stream<BookingHist> stream = checkedinPassengerList.values().stream();
-
-        if (sectorName != null) {
-            stream = stream.filter(bookingHist -> bookingHist.getSector().equals(sectorName));
-        }
-
-        if (airlineName != null) {
-            stream = stream.filter(bookingHist -> bookingHist.getAirlineName().equals(airlineName));
-        }
-
-        return stream.collect(Collectors.toList());
+        return passengerRepository.checkins(sectorName, airlineName);
     }
-
 }
