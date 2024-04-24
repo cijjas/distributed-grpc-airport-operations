@@ -50,7 +50,9 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     public void addCounters(AddCountersRequest request, StreamObserver<AddCountersResponse> responseObserver) {
         int counterCount = request.getCounterCount();
         try {
+            System.out.println("ADDING COUNTERS");
             Integer counterId = airportRepository.addCounters(request.getSectorName(), counterCount);
+            System.out.println("Added counters: " + counterId + " to " + (counterId + counterCount - 1));
             responseObserver.onNext(
                     AddCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -94,7 +96,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
                             ManifestResponse.newBuilder()
                                     .setStatus(StatusResponse.newBuilder()
                                             .setCode(Status.OK.getCode().value())
-                                            .setMessage("Booking " + booking.getBookingCode() + " for " + booking.getAirlineName() + " " + booking.getFlightCode() + " added successfully")
+                                            .setMessage("-Booking " + booking.getBookingCode() + " for " + booking.getAirlineName() + " " + booking.getFlightCode() + " added successfully")
                                             .build())
                                     .setPassenger(request.getPassenger())
                                     .build()

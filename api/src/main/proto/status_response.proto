@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package service;
 
-import "google/protobuf/wrappers.proto";
-import "google/protobuf/empty.proto";
 
 
 option java_package = "ar.edu.itba.pod.grpc";

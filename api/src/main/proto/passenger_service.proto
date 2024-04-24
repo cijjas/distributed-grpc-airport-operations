@@ -4,7 +4,6 @@ package service;
 
 import "status_response.proto";
 import "google/protobuf/wrappers.proto";
-import "google/protobuf/empty.proto";
 
 
 option java_package = "ar.edu.itba.pod.grpc";

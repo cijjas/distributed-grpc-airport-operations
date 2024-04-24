@@ -15,7 +15,7 @@ public class ListSectorsAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
     private static final String HEADER = "Sectors\t Counters";
-
+    private static final String SEPARATOR= "#".repeat(19);
     public ListSectorsAction(ManagedChannel channel,CounterClientArguments arguments) {
         this.channel = channel;
         this.arguments = arguments;
@@ -52,6 +52,7 @@ public class ListSectorsAction implements Action {
 
     private void printSectors(ListSectorsResponse response) {
         System.out.println(HEADER);
+        System.out.println(SEPARATOR);
         response.getSectorsList().forEach(this::printSector);
     }
 
@@ -59,7 +60,8 @@ public class ListSectorsAction implements Action {
     private void printSector(Sector sector) {
         String sectorName = sector.getSectorName();
         List<String> counterRanges = formatCounterRanges(sector);
-        System.out.printf("%s\t %s%n", sectorName, String.join(" ", counterRanges));
+        String sectors = counterRanges.isEmpty() ? "-" : String.join(" ", counterRanges);
+        System.out.printf("%s\t %s%n", sectorName, sectors);
     }
 
     private List<String> formatCounterRanges(Sector sector) {

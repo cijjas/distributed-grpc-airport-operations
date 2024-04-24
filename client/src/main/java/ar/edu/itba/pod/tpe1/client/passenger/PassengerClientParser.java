@@ -39,7 +39,8 @@ public class PassengerClientParser {
             // Sector
             arguments.setSector(cmd.getOptionValue("Dsector"));
             // Counter
-            arguments.setCounterNumber(Integer.parseInt(cmd.getOptionValue("Dcounter")));
+            String countersValue = cmd.getOptionValue("Dcounters");
+            arguments.setCounterNumber(countersValue != null ? Integer.parseInt(countersValue) : null);
 
             return Optional.of(arguments);
         } catch (ParseException e) {

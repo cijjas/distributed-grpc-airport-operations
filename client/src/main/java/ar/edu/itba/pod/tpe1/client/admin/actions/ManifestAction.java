@@ -38,7 +38,7 @@ public class ManifestAction implements Action {
 
     private static void manifest(ManagedChannel channel, Path manifestPath)  {
         AdminServiceGrpc.AdminServiceStub asyncStub = AdminServiceGrpc.newStub(channel);
-        final CountDownLatch finishLatch = new CountDownLatch(1); // Latch for waiting to finish all responses
+        final CountDownLatch finishLatch = new CountDownLatch(1);
 
         StreamObserver<ManifestResponse> responseObserver = new StreamObserver<>() {
             @Override
@@ -67,7 +67,7 @@ public class ManifestAction implements Action {
 
         StreamObserver<ManifestRequest> requestObserver = asyncStub.manifest(responseObserver);
         try (Stream<String> lines = Files.lines(manifestPath)) {
-            lines.skip(1) // Assuming the first line is a header
+            lines.skip(1)
                     .map(line -> line.split(";"))
                     .forEach(parts -> {
                         BookingData bookingData = BookingData.newBuilder()

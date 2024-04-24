@@ -22,6 +22,7 @@ public class CheckinsAction implements Action {
     @Override
     public void execute() {
         try {
+            System.out.println(arguments.getOutPath());
             if(arguments.getSector() == null){
                 System.out.println("hola sin");
                 checkins(channel);

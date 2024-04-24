@@ -29,7 +29,6 @@ public class CounterClient {
 
         executableAction.execute();
 
-
     }
 
 

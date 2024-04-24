@@ -10,8 +10,8 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
-
 import java.util.*;
+import java.util.concurrent.locks.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +23,8 @@ public class AirportRepository {
     private final PassengerRepository passengerRepository;
     private final AirlineRepository airlineRepository;
     private final SortedMap<String, Sector> sectors;
+    private final ReadWriteLock passengerLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock airlineLock = new ReentrantReadWriteLock();
 
     private int nextAvailableCounter;
 
@@ -61,17 +63,36 @@ public class AirportRepository {
     }
 
 
-    public synchronized void addPassenger(Booking booking) {
-        if (passengerRepository.passengerWasRegistered(booking.getBookingCode()))
-            throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
+    public void addPassenger(Booking booking) {
+        passengerLock.readLock().lock();
+        try{
+            if (passengerRepository.passengerWasRegistered(booking.getBookingCode())){
+                throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
+            }
+        } finally {
+            passengerLock.readLock().unlock();
+        }
 
-        if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode())))
-            throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
+        airlineLock.readLock().lock();
+        try{
+            if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode()))){
+                throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
+            }
+        }finally {
+            airlineLock.readLock().unlock();
+        }
 
-        airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
-        airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
+        airlineLock.writeLock().lock();
+        passengerLock.writeLock().lock();
+        try {
+            airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
+            airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
 
-        passengerRepository.addNewPassenger(booking);
+            passengerRepository.addNewPassenger(booking);
+        } finally {
+            passengerLock.writeLock().unlock();
+            airlineLock.writeLock().unlock();
+        }
     }
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {

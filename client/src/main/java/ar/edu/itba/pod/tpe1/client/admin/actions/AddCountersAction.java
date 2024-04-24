@@ -32,7 +32,6 @@ public class AddCountersAction implements Action {
 
     private static void addCounters(ManagedChannel channel, String sector, Integer counterCount) {
         AdminServiceGrpc.AdminServiceBlockingStub stub = AdminServiceGrpc.newBlockingStub(channel);
-
         AddCountersResponse serverResponse = stub.addCounters(
                 AddCountersRequest.newBuilder()
                         .setSectorName(sector)
