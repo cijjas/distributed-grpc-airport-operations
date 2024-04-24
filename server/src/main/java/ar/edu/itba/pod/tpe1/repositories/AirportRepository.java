@@ -11,6 +11,7 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,70 +21,58 @@ public class AirportRepository {
     private final PassengerRepository passengerRepository;
     private final AirlineRepository airlineRepository;
     private final SortedMap<String, Sector> sectors;
-    private final ReadWriteLock passengerLock = new ReentrantReadWriteLock();
-    private final ReadWriteLock airlineLock = new ReentrantReadWriteLock();
+    private static final String SECTOR_LOCK_STRING = "Sector - ";
+    private static final String BOOKING_LOCK_STRING = "Booking - ";
 
+    private final Object nextAvailableCounterLock = new Object();
     private int nextAvailableCounter;
 
-    public AirportRepository(Map<String, Booking> allRegisteredPassengers, Map<String, Booking> expectedPassengerList, Map<String, BookingHist> checkedinPassengerList, Map<String, List<Flight>> airlineFlightCodes) {
+    public AirportRepository(ConcurrentMap<String, Booking> allRegisteredPassengers, ConcurrentMap<String, Booking> expectedPassengerList, ConcurrentMap<String, BookingHist> checkedinPassengerList, ConcurrentMap<String, List<Flight>> airlineFlightCodes) {
         this.passengerRepository = new PassengerRepository(allRegisteredPassengers, expectedPassengerList, checkedinPassengerList);
         this.airlineRepository = new AirlineRepository(airlineFlightCodes);
-        this.sectors = new TreeMap<>();
+        this.sectors = Collections.synchronizedSortedMap(new TreeMap<>());//h
         nextAvailableCounter = 1;
     }
 
-    public synchronized void addSector(String sectorName) {
-        if (sectors.containsKey(sectorName))
-            throw new IllegalArgumentException("Sector name already exists");
-
-        sectors.put(sectorName, new Sector(sectorName, airlineRepository));
+    public void addSector(String sectorName) {
+        synchronized (SECTOR_LOCK_STRING + sectorName) {
+            if (sectors.containsKey(sectorName))
+                throw new IllegalArgumentException("Sector name already exists");
+            sectors.put(sectorName, new Sector(sectorName, airlineRepository));
+        }
     }
 
-    public synchronized Integer addCounters(String sectorName, int counterCount) {
+    public Integer addCounters(String sectorName, int counterCount) {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
         if (counterCount <= 0)
             throw new IllegalArgumentException("Counter count must be greater than 0");
 
-        Sector sector = sectors.get(sectorName);
-        sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(nextAvailableCounter, counterCount));
+        synchronized (SECTOR_LOCK_STRING + sectorName) {
+            Sector sector = sectors.get(sectorName);
 
-        nextAvailableCounter += counterCount;
-        return nextAvailableCounter - counterCount;
+            synchronized (nextAvailableCounterLock) {
+                sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(nextAvailableCounter, counterCount));
+                nextAvailableCounter += counterCount;
+            }
+            return nextAvailableCounter - counterCount;
+        }
     }
 
 
     public void addPassenger(Booking booking) {
-        passengerLock.readLock().lock();
-        try{
-            if (passengerRepository.passengerWasRegistered(booking.getBookingCode())){
-                throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
-            }
-        } finally {
-            passengerLock.readLock().unlock();
+        if (passengerRepository.passengerWasRegistered(booking.getBookingCode())){
+            throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
         }
 
-        airlineLock.readLock().lock();
-        try{
-            if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode()))){
-                throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
-            }
-        }finally {
-            airlineLock.readLock().unlock();
+        if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode()))){
+            throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
         }
+        airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
+        airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
 
-        airlineLock.writeLock().lock();
-        passengerLock.writeLock().lock();
-        try {
-            airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
-            airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
-
-            passengerRepository.addNewPassenger(booking);
-        } finally {
-            passengerLock.writeLock().unlock();
-            airlineLock.writeLock().unlock();
-        }
+        passengerRepository.addNewPassenger(booking);
     }
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
@@ -179,16 +168,18 @@ public class AirportRepository {
     }
 
     public PassengerStatusInfo passengerCheckin(String bookingCode, String sectorName, int counterFrom) {
-        if (!passengerRepository.passengerIsExpected(bookingCode))
-            throw new IllegalArgumentException("Booking code not found or user checked-in");
+        synchronized ("booking - " + bookingCode){
+            if (!passengerRepository.passengerIsExpected(bookingCode))
+                throw new IllegalArgumentException("Booking code not found or user checked-in");
 
-        if (!sectors.containsKey(sectorName))
-            throw new IllegalArgumentException("Sector not found");
+            if (!sectors.containsKey(sectorName))
+                throw new IllegalArgumentException("Sector not found");
 
-        Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
-        CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
-        passengerRepository.removeExpectedPassenger(bookingCode);
-        return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
+            Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
+            CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
+            passengerRepository.removeExpectedPassenger(bookingCode);
+            return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
+        }
     }
 
     public PassengerStatusInfo passengerStatus(String bookingCode) {

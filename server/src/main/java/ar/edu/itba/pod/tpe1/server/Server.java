@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -21,10 +22,10 @@ public class Server {
 
         int port = 50051;
         AirportRepository airportRepository = new AirportRepository(
-                new HashMap<>(),
-                new HashMap<>(),
-                new HashMap<>(),
-                new HashMap<>()
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>()
         );
         addDataToAirport(airportRepository);
         io.grpc.Server server = ServerBuilder.forPort(port)

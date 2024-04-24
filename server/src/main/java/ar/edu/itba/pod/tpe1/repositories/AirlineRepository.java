@@ -5,12 +5,13 @@ import ar.edu.itba.pod.tpe1.models.Flight;
 import ar.edu.itba.pod.tpe1.models.Pair;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 public class AirlineRepository {
-    private final Map<String, List<Flight>> airlineFlightCodes;
+    private final ConcurrentMap<String, List<Flight>> airlineFlightCodes;
 
-    public AirlineRepository(Map<String, List<Flight>> airlineFlightCodes) {
+    public AirlineRepository(ConcurrentMap<String, List<Flight>> airlineFlightCodes) {
         this.airlineFlightCodes = airlineFlightCodes;
     }
 

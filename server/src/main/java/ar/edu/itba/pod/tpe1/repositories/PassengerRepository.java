@@ -5,16 +5,17 @@ import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PassengerRepository {
-    private final Map<String, Booking> allRegisteredPassengers;
-    private final Map<String, Booking> expectedPassengerList;
-    private final Map<String, BookingHist> checkedinPassengerList;
+    private final ConcurrentMap<String, Booking> allRegisteredPassengers;
+    private final ConcurrentMap<String, Booking> expectedPassengerList;
+    private final ConcurrentMap<String, BookingHist> checkedinPassengerList;
 
-    public PassengerRepository(Map<String, Booking> allRegisteredPassengers, Map<String, Booking> expectedPassengerList, Map<String, BookingHist> checkedinPassengerList) {
+    public PassengerRepository(ConcurrentMap<String, Booking> allRegisteredPassengers, ConcurrentMap<String, Booking> expectedPassengerList, ConcurrentMap<String, BookingHist> checkedinPassengerList) {
         this.allRegisteredPassengers = allRegisteredPassengers;
         this.expectedPassengerList = expectedPassengerList;
         this.checkedinPassengerList = checkedinPassengerList;

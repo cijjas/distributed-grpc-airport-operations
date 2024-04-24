@@ -5,19 +5,20 @@ import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Getter
 public class AssignedCounterGroup extends CounterGroup{
     private final String airlineName;
     private final List<String> flightCodes;
-    private final Queue<Booking> pendingPassengers;
+    private final ConcurrentLinkedQueue<Booking> pendingPassengers;
 
     public AssignedCounterGroup(CheckinAssignment checkinAssignment, int counterStart) {
         super(counterStart, checkinAssignment.counterCount());
         this.airlineName = checkinAssignment.airlineName();
         this.flightCodes = checkinAssignment.flightCodes();
 
-        this.pendingPassengers = new LinkedList<>();
+        this.pendingPassengers = new ConcurrentLinkedQueue<>();
     }
 
     @Override
