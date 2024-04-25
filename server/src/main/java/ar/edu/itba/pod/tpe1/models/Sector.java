@@ -13,15 +13,15 @@ import java.util.*;
 
 @Getter
 public class Sector {
-    //Pending to assign group (no tienen counters aun)
-    private final List<CheckinAssignment> pendingAssignmentsList;
+    private final CopyOnWriteArrayList<CheckinAssignment> pendingAssignmentsList;
+    private final Object pendingAssignmentsLock = new Object();
 
     private final SortedMap<Integer, CounterGroup> counterGroupMap;
+    private final Object counterGroupMapLock = new Object();
+
     private final AirlineRepository airlineRepository;
 
-    @Getter
     private final String name;
-
 
     public Sector(String name, AirlineRepository airlineRepository) {
         pendingAssignmentsList = new LinkedList<>();
@@ -32,50 +32,46 @@ public class Sector {
 
     public CounterGroup fetchCounter(String flightCode) {
         for (CounterGroup group : counterGroupMap.values())
-            if (group.containsFlightCode(flightCode))
-                return group;
+            if (group.containsFlightCode(flightCode)) return group;
         return null;
     }
 
     public void addCounterGroup(int firstCounter, CounterGroup newCounterGroup) {
+        synchronized (counterGroupMapLock) {
+            SortedMap<Integer, CounterGroup> headMap = counterGroupMap.headMap(firstCounter);
 
-        SortedMap<Integer, CounterGroup> headMap = counterGroupMap.headMap(firstCounter);
+            if (headMap.isEmpty() || headMap.get(headMap.lastKey()).isActive() || headMap.lastKey() + headMap.get(headMap.lastKey()).getCounterCount() != firstCounter) {
+                counterGroupMap.put(firstCounter, newCounterGroup);
+            } else {
+                CounterGroup prevCounterGroup = counterGroupMap.get(headMap.lastKey());
+                counterGroupMap.put(headMap.lastKey(), new UnassignedCounterGroup(headMap.lastKey(), newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount()));
+                counterGroupMap.remove(firstCounter);
+                firstCounter = headMap.lastKey();
+                newCounterGroup.setCounterCount(newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount());
+            }
 
-        if (headMap.isEmpty() ||
-                headMap.get(headMap.lastKey()).isActive() ||
-                headMap.lastKey() + headMap.get(headMap.lastKey()).getCounterCount() != firstCounter) {
-            counterGroupMap.put(firstCounter, newCounterGroup);
-        } else {
-            CounterGroup prevCounterGroup = counterGroupMap.get(headMap.lastKey());
-            counterGroupMap.put(headMap.lastKey(), new UnassignedCounterGroup(headMap.lastKey(), newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount()));
-            counterGroupMap.remove(firstCounter);
-            firstCounter = headMap.lastKey();
-            newCounterGroup.setCounterCount(newCounterGroup.getCounterCount() + prevCounterGroup.getCounterCount());
-            System.out.println("Merged");
+            SortedMap<Integer, CounterGroup> tailMap = counterGroupMap.tailMap(firstCounter + newCounterGroup.getCounterCount());
+
+            if (!tailMap.isEmpty() && !tailMap.get(tailMap.firstKey()).isActive() && tailMap.firstKey() == firstCounter + newCounterGroup.getCounterCount()) {
+                CounterGroup nextCounterGroup = counterGroupMap.get(tailMap.firstKey());
+                counterGroupMap.put(firstCounter, new UnassignedCounterGroup(firstCounter, newCounterGroup.getCounterCount() + nextCounterGroup.getCounterCount()));
+                counterGroupMap.remove(tailMap.firstKey());
+            }
+
+            assignCounterGroupForPendingAssignments();
         }
-
-        SortedMap<Integer, CounterGroup> tailMap = counterGroupMap.tailMap(firstCounter + newCounterGroup.getCounterCount());
-
-        if (!tailMap.isEmpty() &&
-                !tailMap.get(tailMap.firstKey()).isActive() &&
-                tailMap.firstKey() == firstCounter + newCounterGroup.getCounterCount()) {
-            CounterGroup nextCounterGroup = counterGroupMap.get(tailMap.firstKey());
-            counterGroupMap.put(firstCounter, new UnassignedCounterGroup(firstCounter, newCounterGroup.getCounterCount() + nextCounterGroup.getCounterCount()));
-            counterGroupMap.remove(tailMap.firstKey());
-            System.out.println("Merged");
-        }
-
-        assignCounterGroupForPendingAssignments();
     }
 
     public Pair<Boolean, Integer> assignCounterGroupOrEnqueue(CheckinAssignment checkinAssignment, boolean addIfNoSpace) {
-        for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
-            if (entry.getValue().getCounterCount() >= checkinAssignment.counterCount() && !entry.getValue().isActive()) {
-                splitUnoccupiedCounter(entry.getKey(), checkinAssignment.counterCount());
-                AssignedCounterGroup assignedCounterGroup = new AssignedCounterGroup(checkinAssignment, entry.getKey());
-                counterGroupMap.put(entry.getKey(), assignedCounterGroup);
-                airlineRepository.assignCountersToFlights(name, entry.getKey(), assignedCounterGroup);
-                return new Pair<>(true, entry.getKey());
+        synchronized (counterGroupMapLock) {
+            for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
+                if (entry.getValue().getCounterCount() >= checkinAssignment.counterCount() && !entry.getValue().isActive()) {
+                    splitUnoccupiedCounter(entry.getKey(), checkinAssignment.counterCount());
+                    AssignedCounterGroup assignedCounterGroup = new AssignedCounterGroup(checkinAssignment, entry.getKey());
+                    counterGroupMap.put(entry.getKey(), assignedCounterGroup);
+                    airlineRepository.assignCountersToFlights(name, entry.getKey(), assignedCounterGroup);
+                    return new Pair<>(true, entry.getKey());
+                }
             }
         }
 
@@ -90,25 +86,23 @@ public class Sector {
 
 
     public void assignCounterGroupForPendingAssignments() {
-        Integer minCountNotAdded = null;
-        for (CheckinAssignment checkinAssignment : pendingAssignmentsList)
-            if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount())
-                    && assignCounterGroupOrEnqueue(checkinAssignment, false).getLeft()) {
-                pendingAssignmentsList.remove(checkinAssignment);
-                minCountNotAdded = checkinAssignment.counterCount();
-            }
+        synchronized (counterGroupMapLock) {
+            Integer minCountNotAdded = null;
+            for (CheckinAssignment checkinAssignment : pendingAssignmentsList)
+                if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount()) && assignCounterGroupOrEnqueue(checkinAssignment, false).getLeft()) {
+                    pendingAssignmentsList.remove(checkinAssignment);
+                    minCountNotAdded = checkinAssignment.counterCount();
+                }
+        }
     }
 
-    private CounterGroup splitUnoccupiedCounter(int firstCount, int counterGroupSize) {
+    private void splitUnoccupiedCounter(int firstCount, int counterGroupSize) {
         CounterGroup leftCounterGroup = counterGroupMap.get(firstCount);
         int prevSize = leftCounterGroup.getCounterCount();
         leftCounterGroup.setCounterCount(counterGroupSize);
 
-        if (prevSize == counterGroupSize) return leftCounterGroup;
-
+        if (prevSize == counterGroupSize) return;
         counterGroupMap.put(firstCount + counterGroupSize, new UnassignedCounterGroup(firstCount + counterGroupSize, prevSize - counterGroupSize));
-
-        return leftCounterGroup;
     }
 
     public SortedMap<Integer, Integer> listGroupedCounters() {
@@ -130,36 +124,42 @@ public class Sector {
     }
 
     public CounterGroup freeCounters(String airlineName, int counterFrom) {
-        CounterGroup counterGroup = counterGroupMap.get(counterFrom);
+        synchronized (counterGroupMapLock) {
+            CounterGroup counterGroup = counterGroupMap.get(counterFrom);
 
-        if (counterGroup == null || !counterGroup.isActive()) {
-            throw new IllegalArgumentException("No counter groups start on counter " + counterFrom + " in requested sector");
+            if (counterGroup == null || !counterGroup.isActive()) {
+                throw new IllegalArgumentException("No counter groups start on counter " + counterFrom + " in requested sector");
+            }
+
+            if (!counterGroup.getAirlineName().equals(airlineName)) {
+                throw new IllegalArgumentException("Counter does not correspond to requested airline");
+            }
+
+            synchronized (pendingAssignmentsLock) {
+                if (!counterGroup.getPendingPassengers().isEmpty()) {
+                    throw new IllegalArgumentException("Cannot free counters, there are passengers in line");
+                }
+
+                addCounterGroup(counterFrom, new UnassignedCounterGroup(counterFrom, counterGroup.getCounterCount()));
+                return counterGroup;
+            }
         }
-
-        if (!counterGroup.getAirlineName().equals(airlineName)) {
-            throw new IllegalArgumentException("Counter does not correspond to requested airline");
-        }
-
-        if (!counterGroup.getPendingPassengers().isEmpty()) {
-            throw new IllegalArgumentException("Cannot free counters, there are passengers in line");
-        }
-
-        addCounterGroup(counterFrom, new UnassignedCounterGroup(counterFrom, counterGroup.getCounterCount()));
-        return counterGroup;
     }
 
     public List<BookingHist> checkinCounters(int counterFrom, String airlineName) {
-        CounterGroup counterGroup = counterGroupMap.get(counterFrom);
+        synchronized (counterGroupMapLock) {
+            CounterGroup counterGroup = counterGroupMap.get(counterFrom);
 
-        if (counterGroup == null || !counterGroup.isActive()) {
-            throw new IllegalArgumentException("No counter groups start on counter " + counterFrom + " in requested sector");
+            if (counterGroup == null || !counterGroup.isActive()) {
+                throw new IllegalArgumentException("No counter groups start on counter " + counterFrom + " in requested sector");
+            }
+
+            if (!counterGroup.getAirlineName().equals(airlineName)) {
+                throw new IllegalArgumentException("Counter does not correspond to requested airline");
+            }
+
+            return counterGroup.checkinCounters().stream().peek(bookingHist -> bookingHist.setCheckinCounter(bookingHist.getCheckinCounter() + counterFrom)).toList();
         }
-
-        if (!counterGroup.getAirlineName().equals(airlineName)) {
-            throw new IllegalArgumentException("Counter does not correspond to requested airline");
-        }
-
-        return counterGroup.checkinCounters().stream().peek(bookingHist -> bookingHist.setCheckinCounter(bookingHist.getCheckinCounter() + counterFrom)).toList();
     }
 
     public List<CheckinAssignment> listPendingAssignments() {
@@ -167,16 +167,18 @@ public class Sector {
     }
 
     public CounterGroup passengerCheckin(Booking booking, int fromCounter) {
-        if (!counterGroupMap.containsKey(fromCounter))
-            throw new IllegalArgumentException("Invalid counter start");
-        CounterGroup group = counterGroupMap.get(fromCounter);
+        synchronized (counterGroupMapLock) {
+            if (!counterGroupMap.containsKey(fromCounter)) throw new IllegalArgumentException("Invalid counter start");
+            CounterGroup group = counterGroupMap.get(fromCounter);
 
-        if (!group.containsFlightCode(booking.getFlightCode()))
-            throw new IllegalArgumentException("Invalid counter start for flight");
+            if (!group.containsFlightCode(booking.getFlightCode()))
+                throw new IllegalArgumentException("Invalid counter start for flight");
 
-        group.addPendingPassenger(booking);
-
-        return group;
+            synchronized (pendingAssignmentsLock) {
+                group.addPendingPassenger(booking);
+                return group;
+            }
+        }
     }
 
     public SortedMap<Integer, CounterGroup> listCounters(int fromVal, int toVal) {

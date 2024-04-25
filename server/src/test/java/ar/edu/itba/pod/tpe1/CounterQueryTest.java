@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ar.edu.itba.pod.tpe1.TestUtils.*;
 import static ar.edu.itba.pod.tpe1.TestUtils.FLIGHT_CODE_1;
@@ -20,7 +21,11 @@ public class CounterQueryTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        airportRepository = new AirportRepository(
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>());
     }
 
     @Test

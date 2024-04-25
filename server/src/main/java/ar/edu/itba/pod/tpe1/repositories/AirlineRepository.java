@@ -3,6 +3,7 @@ package ar.edu.itba.pod.tpe1.repositories;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.Flight;
 import ar.edu.itba.pod.tpe1.models.Pair;
+import ar.edu.itba.pod.tpe1.semaphores.SemaphoreAdministrator;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
@@ -25,13 +26,11 @@ public class AirlineRepository {
     }
 
     public boolean flightCodeAlreadyExistsForOtherAirlines(String currentAirline, List<String> flightCodes) {
-        for (Map.Entry<String, List<Flight>> entry : airlineFlightCodes.entrySet()) {
-            if (!entry.getKey().equals(currentAirline)
-                    && entry.getValue().stream().map(Flight::getFlightCode).anyMatch(flightCodes::contains)) {
-                return true;
-            }
-        }
-        return false;
+        return airlineFlightCodes.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(currentAirline))
+                .flatMap(entry -> entry.getValue().stream())
+                .map(Flight::getFlightCode)
+                .anyMatch(flightCodes::contains);
     }
 
     public boolean allFlightCodesRegistered(List<String> flightCodes) {
@@ -66,9 +65,11 @@ public class AirlineRepository {
                 .toList();
 
         for (Flight flight : flights) {
+            semaphoreAdministrator.writeLockFlightCode(flight.getFlightCode());
             flight.setCounterStart(counterStart);
             flight.setCounterGroup(counterGroup);
             flight.setSector(sectorName);
+            semaphoreAdministrator.writeUnlockFlightCode(flight.getFlightCode());
         }
     }
 

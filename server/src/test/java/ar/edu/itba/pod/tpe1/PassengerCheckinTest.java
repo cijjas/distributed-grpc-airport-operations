@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ar.edu.itba.pod.tpe1.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +20,11 @@ public class PassengerCheckinTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        airportRepository = new AirportRepository(
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>());
     }
 
     @Test
@@ -70,6 +75,8 @@ public class PassengerCheckinTest {
 
     @Test
     public final void passengerCheckinBookingCodeNotFoundTest() {
+        airportRepository.addSector(SECTOR_A);
+
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since booking code was not found");

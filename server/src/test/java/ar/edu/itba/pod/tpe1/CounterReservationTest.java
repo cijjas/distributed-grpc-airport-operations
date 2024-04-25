@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ar.edu.itba.pod.tpe1.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +19,11 @@ public class CounterReservationTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        airportRepository = new AirportRepository(
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>());
     }
 
     @Test
@@ -393,8 +398,15 @@ public class CounterReservationTest {
         assertEquals(1, airportRepository.listSectors().get(SECTOR_A).size());
     }
 
+    final Object lock = new Object();
     @Test
     public final void dummyTestForTesting() {
+        synchronized(lock) {
+            synchronized(lock) {
+                System.out.println("hola");
+            }
+        }
+
         airportRepository.addSector(SECTOR_A);
         airportRepository.addPassenger(PASSENGER_A);
         airportRepository.addPassenger(PASSENGER_B);

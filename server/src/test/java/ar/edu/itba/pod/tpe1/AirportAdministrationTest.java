@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ar.edu.itba.pod.tpe1.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +17,11 @@ class AirportAdministrationTest {
 
     @BeforeEach
     public void setUp() {
-        airportRepository = new AirportRepository(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        airportRepository = new AirportRepository(
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>());
     }
 
     @Test

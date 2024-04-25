@@ -4,7 +4,6 @@ import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.models.Booking.BookingHist;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,7 +49,7 @@ public class PassengerRepository {
         return expectedPassengerList.values().stream().anyMatch(b -> b.getAirlineName().equals(airlineName));
     }
 
-    public void checkInPassengers(String sectorName, List<BookingHist> bookingHists) {
+    public synchronized void addToCheckinHistory(String sectorName, List<BookingHist> bookingHists) {
         checkedinPassengerList.putAll(bookingHists.stream()
                 .filter(b -> b.getAirlineName() != null)
                 .peek(bh -> bh.setSector(sectorName))
