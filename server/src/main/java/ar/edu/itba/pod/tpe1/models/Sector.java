@@ -10,6 +10,7 @@ import ar.edu.itba.pod.tpe1.repositories.AirlineRepository;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 public class Sector {
@@ -24,7 +25,7 @@ public class Sector {
     private final String name;
 
     public Sector(String name, AirlineRepository airlineRepository) {
-        pendingAssignmentsList = new LinkedList<>();
+        pendingAssignmentsList = new CopyOnWriteArrayList<>();
         counterGroupMap = new TreeMap<>();
         this.name = name;
         this.airlineRepository = airlineRepository;
@@ -106,21 +107,22 @@ public class Sector {
     }
 
     public SortedMap<Integer, Integer> listGroupedCounters() {
-        SortedMap<Integer, Integer> returnMap = new TreeMap<>();
-        Integer prevKey = null;
-        int prevCount = 0;
-        for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
-            if (prevKey != null && prevKey + returnMap.get(prevKey) == entry.getKey()) {
-                prevCount += entry.getValue().getCounterCount();
-                returnMap.put(prevKey, prevCount);
-            } else {
-                returnMap.put(entry.getKey(), entry.getValue().getCounterCount());
-                prevKey = entry.getKey();
-                prevCount = entry.getValue().getCounterCount();
+        synchronized (counterGroupMapLock) {
+            SortedMap<Integer, Integer> returnMap = new TreeMap<>();
+            Integer prevKey = null;
+            int prevCount = 0;
+            for (Map.Entry<Integer, CounterGroup> entry : counterGroupMap.entrySet()) {
+                if (prevKey != null && prevKey + returnMap.get(prevKey) == entry.getKey()) {
+                    prevCount += entry.getValue().getCounterCount();
+                    returnMap.put(prevKey, prevCount);
+                } else {
+                    returnMap.put(entry.getKey(), entry.getValue().getCounterCount());
+                    prevKey = entry.getKey();
+                    prevCount = entry.getValue().getCounterCount();
+                }
             }
+            return returnMap;
         }
-
-        return returnMap;
     }
 
     public CounterGroup freeCounters(String airlineName, int counterFrom) {

@@ -23,6 +23,7 @@ public class AirportRepository {
     private final ConcurrentSkipListMap<String, Sector> sectors;
     private final SemaphoreAdministrator semaphoreAdmin;
     private int nextAvailableCounter;
+    private static final Object nextAvailableCounterLock = new Object();
 
     public AirportRepository(
             ConcurrentMap<String, Booking> allRegisteredPassengers,
@@ -78,7 +79,6 @@ public class AirportRepository {
         }
         airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
         airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
-
         passengerRepository.addNewPassenger(booking);
 
         semaphoreAdmin.writeUnlockBookingAndFlightCode(booking);
@@ -117,6 +117,8 @@ public class AirportRepository {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
+        semaphoreAdmin.writeLockSector(sectorName);
+
         if (!airlineRepository.allFlightCodesRegistered(flightCodes))
             throw new IllegalArgumentException("At least one of the flight codes have not been registered");
 
@@ -131,13 +133,13 @@ public class AirportRepository {
         Pair<Boolean, Integer> toRet = sectors.get(sectorName).assignCounterGroup(checkinAssignment);
         airlineRepository.markFlightsAsAssigned(airlineName, flightCodes);
 
+        semaphoreAdmin.writeUnlockSector(sectorName);
         return toRet;
     }
 
     public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom) {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-
         return sectors.get(sectorName).freeCounters(airlineName, counterFrom);
     }
 
@@ -196,11 +198,12 @@ public class AirportRepository {
             throw new IllegalArgumentException("Booking code not found or user checked-in");
         }
 
-            Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
-            CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
-            passengerRepository.removeExpectedPassenger(bookingCode);
-            return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
-        }
+        Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
+        CounterGroup counterGroup = sectors.get(sectorName).passengerCheckin(booking, counterFrom);
+        passengerRepository.removeExpectedPassenger(bookingCode);
+
+        semaphoreAdmin.writeUnlockBooking(bookingCode);
+        return new PassengerStatusInfo(CheckInStatus.AWAITING, booking, sectorName, counterGroup);
     }
 
     public PassengerStatusInfo passengerStatus(String bookingCode) {

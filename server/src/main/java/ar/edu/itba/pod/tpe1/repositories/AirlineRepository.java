@@ -7,18 +7,21 @@ import ar.edu.itba.pod.tpe1.semaphores.SemaphoreAdministrator;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class AirlineRepository {
-    private final ConcurrentMap<String, List<Flight>> airlineFlightCodes;
+    private final ConcurrentMap<String, CopyOnWriteArrayList<Flight>> airlineFlightCodes;
+    private final SemaphoreAdministrator semaphoreAdministrator;
 
-    public AirlineRepository(ConcurrentMap<String, List<Flight>> airlineFlightCodes) {
+    public AirlineRepository(ConcurrentMap<String, CopyOnWriteArrayList<Flight>> airlineFlightCodes, SemaphoreAdministrator semaphoreAdministrator) {
+        this.semaphoreAdministrator = semaphoreAdministrator;
         this.airlineFlightCodes = airlineFlightCodes;
     }
 
     public void addAirlineIfNotExists(String airlineName) {
         if (!airlineFlightCodes.containsKey(airlineName))
-            airlineFlightCodes.put(airlineName, new ArrayList<>());
+            airlineFlightCodes.put(airlineName, new CopyOnWriteArrayList<>());
     }
 
     public void addFlightToAirline(String airlineName, String flightCode) {
@@ -34,7 +37,7 @@ public class AirlineRepository {
     }
 
     public boolean allFlightCodesRegistered(List<String> flightCodes) {
-        Collection<List<Flight>> flights = airlineFlightCodes.values();
+        Collection<CopyOnWriteArrayList<Flight>> flights = airlineFlightCodes.values();
         Set<String> allFlightCodes = flights.stream().flatMap(List::stream).map(Flight::getFlightCode).collect(Collectors.toSet());
         return allFlightCodes.containsAll(flightCodes);
     }
@@ -53,14 +56,18 @@ public class AirlineRepository {
     }
 
     public void markFlightsAsAssigned(String airlineName, List<String> flightCodes) {
-        airlineFlightCodes.get(airlineName).stream()
+        airlineFlightCodes
+                .get(airlineName)
+                .stream()
                 .filter(flight -> flightCodes.contains(flight.getFlightCode()))
                 .forEach(Flight::assign);
     }
 
 
     public void assignCountersToFlights(String sectorName, int counterStart, CounterGroup counterGroup) {
-        List<Flight> flights = airlineFlightCodes.get(counterGroup.getAirlineName()).stream()
+        List<Flight> flights = airlineFlightCodes
+                .get(counterGroup.getAirlineName())
+                .stream()
                 .filter(flight -> counterGroup.getFlightCodes().contains(flight.getFlightCode()))
                 .toList();
 
