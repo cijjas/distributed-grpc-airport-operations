@@ -2,7 +2,6 @@ package ar.edu.itba.pod.tpe1.server;
 
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
-import ar.edu.itba.pod.tpe1.repositories.NotificationRepository;
 import ar.edu.itba.pod.tpe1.servants.AdminServant;
 import ar.edu.itba.pod.tpe1.servants.CounterServant;
 import ar.edu.itba.pod.tpe1.servants.EventsServant;
@@ -24,7 +23,6 @@ public class Server {
 
         int port = parsePort(args);
         AirportRepository airportRepository = initializeAirportRepository();
-        NotificationRepository notificationRepository = new NotificationRepository(airportRepository.getPassengerRepository());
 
         // TODO SACAR AL FINAL
         addDataToAirport(airportRepository);
