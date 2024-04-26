@@ -26,11 +26,24 @@ public class PassengerStatusAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            passengerStatus(channel, arguments.getBooking());
-        } catch (Exception e) {
-            System.out.println("Failed to get status");
+        if (arguments.getBooking().isPresent()) {
+            try {
+                passengerStatus(channel, arguments.getBooking().get());
+            } catch (Exception e) {
+                handlePassengerStatusError(e);
+            }
+        } else {
+            printPassengerStatusUsageInstructions();
         }
+    }
+    private void handlePassengerStatusError(Exception e) {
+        System.out.println("Failed to get status due to an error: " + e.getMessage());
+        printPassengerStatusUsageInstructions();
+    }
+
+    private void printPassengerStatusUsageInstructions() {
+        System.out.println("Invalid or missing booking parameter.");
+        System.out.println("Please ensure you include the parameter: -Dbooking=<bookingCode>");
     }
 
     private void passengerStatus(ManagedChannel channel, String booking) {

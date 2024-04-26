@@ -10,16 +10,21 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 import ar.edu.itba.pod.tpe1.models.FlightStatus.FlightStatusInfo;
 import ar.edu.itba.pod.tpe1.models.PassengerStatus.PassengerStatusInfo;
+
+import java.net.PasswordAuthentication;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import ar.edu.itba.pod.tpe1.semaphores.SemaphoreAdministrator;
+import lombok.Getter;
 
 public class AirportRepository {
+    @Getter
     private final PassengerRepository passengerRepository;
     private final AirlineRepository airlineRepository;
+
     private final ConcurrentSkipListMap<String, Sector> sectors;
     private final SemaphoreAdministrator semaphoreAdmin;
     private int nextAvailableCounter;
@@ -35,7 +40,6 @@ public class AirportRepository {
         this.passengerRepository = new PassengerRepository(allRegisteredPassengers, expectedPassengerList, checkedinPassengerList);
         this.airlineRepository = new AirlineRepository(airlineFlightCodes, this.semaphoreAdmin);
         this.sectors = new ConcurrentSkipListMap<>();
-
         nextAvailableCounter = 1;
     }
 

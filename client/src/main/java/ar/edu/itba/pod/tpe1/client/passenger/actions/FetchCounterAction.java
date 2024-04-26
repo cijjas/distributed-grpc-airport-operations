@@ -30,14 +30,26 @@ public class FetchCounterAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            fetchCounter(channel, arguments.getBooking());
-        } catch (Exception e) {
-            System.out.println("Failed to fetch counter");
-            System.out.println("Should have parameters: -Dbooking");
+        if (arguments.getBooking().isPresent()) {
+            try {
+                fetchCounter(channel, arguments.getBooking().get());
+            } catch (Exception e) {
+                handleFetchCounterError(e);
+            }
+        } else {
+            printFetchCounterUsageInstructions();
         }
     }
 
+    private void handleFetchCounterError(Exception e) {
+        System.out.println("Failed to fetch counter due to an error: " + e.getMessage());
+        printFetchCounterUsageInstructions();
+    }
+
+    private void printFetchCounterUsageInstructions() {
+        System.out.println("Invalid or missing booking parameter.");
+        System.out.println("Please ensure you include the parameter: -Dbooking=<bookingCode>");
+    }
     private void fetchCounter(ManagedChannel channel, String booking) {
         PassengerServiceGrpc.PassengerServiceBlockingStub stub = PassengerServiceGrpc.newBlockingStub(channel);
         Optional<FetchCounterResponse> response = Optional.ofNullable(

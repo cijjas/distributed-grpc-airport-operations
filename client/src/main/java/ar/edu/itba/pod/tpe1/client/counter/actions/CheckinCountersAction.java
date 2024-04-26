@@ -24,12 +24,27 @@ public class CheckinCountersAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            checkinCounters(channel, arguments.getSector(), arguments.getCounterFrom(), arguments.getAirline());
-        } catch (Exception e) {
-            System.out.println("Failed to checkin counters");
-            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -Dairline");
+        if(arguments.getSector().isPresent() && arguments.getCounterFrom().isPresent() && arguments.getAirline().isPresent()){
+            try{
+                checkinCounters(channel, arguments.getSector().get(), arguments.getCounterFrom().get(), arguments.getAirline().get());
+            }
+            catch (Exception e){
+                handleCheckinCountersError(e);
+            }
         }
+        else {
+            printCheckinCountersUsageInstructions();
+        }
+    }
+
+    private void handleCheckinCountersError(Exception e) {
+        System.out.println("Failed to check-in counters due to an error: " + e.getMessage());
+        printCheckinCountersUsageInstructions();
+    }
+
+    private void printCheckinCountersUsageInstructions() {
+        System.out.println("Invalid or missing parameters for check-in operation.");
+        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<counterStartNumber> -Dairline=<airlineName>");
     }
 
     private void checkinCounters(ManagedChannel channel, String sector, Integer counterFrom, String airline) {

@@ -19,15 +19,26 @@ public class AddCountersAction implements Action {
         this.arguments = arguments;
     }
 
-    @Override
     public void execute() {
-        try{
-            addCounters(channel, arguments.getSector(), arguments.getCounters());
+        if (arguments.getSector().isPresent() && arguments.getCounters().isPresent()) {
+            try {
+                addCounters(channel, arguments.getSector().get(), arguments.getCounters().get());
+            } catch (Exception e) {
+                handleAddCountersError(e);
+            }
+        } else {
+            printUsageInstructions();
         }
-        catch (Exception e){
-            System.out.println("Failed to add counters");
-            System.out.println("Should have arguments: -Dsector, -Dcounters");
-        }
+    }
+
+    private void handleAddCountersError(Exception e) {
+        System.out.println("Failed to add counters due to an error: " + e.getMessage());
+        printUsageInstructions();
+    }
+
+    private void printUsageInstructions() {
+        System.out.println("No valid sector or counter count selected.");
+        System.out.println("Please ensure to include arguments: -Dsector=<sectorName> -Dcounters=<counterAmount>");
     }
 
     private static void addCounters(ManagedChannel channel, String sector, Integer counterCount) {

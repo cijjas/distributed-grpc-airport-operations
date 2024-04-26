@@ -27,10 +27,20 @@ public class ListSectorsAction implements Action {
         try {
             listSectors(channel);
         } catch (Exception e) {
-            System.out.println("Failed to list sectors");
-            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -DcounterTo");
+            handleListSectorsError(e);
         }
     }
+
+    private void handleListSectorsError(Exception e) {
+        System.out.println("Failed to list sectors due to an error: " + e.getMessage());
+        printGeneralHelpInstructions();
+    }
+
+    private void printGeneralHelpInstructions() {
+        System.out.println("This operation does not require parameters.");
+        System.out.println("Please ensure your network connection and server are functioning properly.");
+    }
+
 
     private void listSectors(ManagedChannel channel){
         CounterServiceGrpc.CounterServiceBlockingStub stub = CounterServiceGrpc.newBlockingStub(channel);
@@ -39,7 +49,6 @@ public class ListSectorsAction implements Action {
                 this::handleResponse,
                 () -> System.out.println("Failed to list sectors")
         );
-
     }
 
     private void handleResponse(ListSectorsResponse response) {

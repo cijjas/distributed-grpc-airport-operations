@@ -28,12 +28,25 @@ public class ListCountersAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            listCounters(channel, arguments.getSector(), arguments.getCounterFrom(), arguments.getCounterTo());
-        } catch (Exception e) {
-            System.out.println("Failed to list counters");
-            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -DcounterTo");
+        if (arguments.getSector().isPresent() && arguments.getCounterFrom().isPresent() && arguments.getCounterTo().isPresent()) {
+            try {
+                listCounters(channel, arguments.getSector().get(), arguments.getCounterFrom().get(), arguments.getCounterTo().get());
+            } catch (Exception e) {
+                handleListCountersError(e);
+            }
+        } else {
+            printListCountersUsageInstructions();
         }
+    }
+
+    private void handleListCountersError(Exception e) {
+        System.out.println("Failed to list counters due to an error: " + e.getMessage());
+        printListCountersUsageInstructions();
+    }
+
+    private void printListCountersUsageInstructions() {
+        System.out.println("Invalid or missing parameters for listing counters.");
+        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
     }
 
     private void listCounters(ManagedChannel channel, String sector, Integer counterFrom, Integer counterTo) {
