@@ -20,12 +20,16 @@ public class AirlineRepository {
     }
 
     public void addAirlineIfNotExists(String airlineName) {
+        semaphoreAdministrator.addAndWriteLockAirline(airlineName);
         if (!airlineFlightCodes.containsKey(airlineName))
             airlineFlightCodes.put(airlineName, new CopyOnWriteArrayList<>());
+        semaphoreAdministrator.writeUnlockAirlineName(airlineName);
     }
 
     public void addFlightToAirline(String airlineName, String flightCode) {
+        semaphoreAdministrator.writeLockAirlineName(airlineName);
         airlineFlightCodes.get(airlineName).add(new Flight(flightCode));
+        semaphoreAdministrator.writeUnlockAirlineName(airlineName);
     }
 
     public boolean flightCodeAlreadyExistsForOtherAirlines(String currentAirline, List<String> flightCodes) {
@@ -56,11 +60,13 @@ public class AirlineRepository {
     }
 
     public void markFlightsAsAssigned(String airlineName, List<String> flightCodes) {
+        semaphoreAdministrator.writeLockFlightCodes();
         airlineFlightCodes
                 .get(airlineName)
                 .stream()
                 .filter(flight -> flightCodes.contains(flight.getFlightCode()))
                 .forEach(Flight::assign);
+        semaphoreAdministrator.writeUnlockFlightCodes();
     }
 
 
@@ -71,13 +77,13 @@ public class AirlineRepository {
                 .filter(flight -> counterGroup.getFlightCodes().contains(flight.getFlightCode()))
                 .toList();
 
+        semaphoreAdministrator.writeLockFlightCodes();
         for (Flight flight : flights) {
-            semaphoreAdministrator.writeLockFlightCode(flight.getFlightCode());
             flight.setCounterStart(counterStart);
             flight.setCounterGroup(counterGroup);
             flight.setSector(sectorName);
-            semaphoreAdministrator.writeUnlockFlightCode(flight.getFlightCode());
         }
+        semaphoreAdministrator.writeUnlockFlightCodes();
     }
 
     public Pair<String, Integer> getSectorAndCounterFromAirlineAndFlight(String airlineName, String flightCode) {

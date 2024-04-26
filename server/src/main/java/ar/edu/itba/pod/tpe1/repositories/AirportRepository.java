@@ -66,22 +66,22 @@ public class AirportRepository {
 
 
     public void addPassenger(Booking booking) {
-        semaphoreAdmin.addAndWriteLockBookingAndFlightCode(booking);
+        semaphoreAdmin.addAndWriteLockBookingAndFlightCodes(booking);
 
         if (passengerRepository.passengerWasRegistered(booking.getBookingCode())){
-            semaphoreAdmin.writeUnlockBookingAndFlightCode(booking);
+            semaphoreAdmin.writeUnlockBookingAndFlightCodes(booking);
             throw new IllegalArgumentException("Booking with code " + booking.getBookingCode() + " already exists");
         }
 
         if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(booking.getAirlineName(), List.of(booking.getFlightCode()))){
-            semaphoreAdmin.writeUnlockBookingAndFlightCode(booking);
+            semaphoreAdmin.writeUnlockBookingAndFlightCodes(booking);
             throw new IllegalArgumentException("Flight with code " + booking.getFlightCode() + " is already assigned to another airline");
         }
         airlineRepository.addAirlineIfNotExists(booking.getAirlineName());
         airlineRepository.addFlightToAirline(booking.getAirlineName(), booking.getFlightCode());
         passengerRepository.addNewPassenger(booking);
 
-        semaphoreAdmin.writeUnlockBookingAndFlightCode(booking);
+        semaphoreAdmin.writeUnlockBookingAndFlightCodes(booking);
     }
 
     public SortedMap<String, SortedMap<Integer, Integer>> listSectors() {
@@ -117,23 +117,31 @@ public class AirportRepository {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
-        semaphoreAdmin.writeLockSector(sectorName);
+        semaphoreAdmin.readLockFlightCodes();
 
-        if (!airlineRepository.allFlightCodesRegistered(flightCodes))
+        if (!airlineRepository.allFlightCodesRegistered(flightCodes)) {
+            semaphoreAdmin.readUnlockFlightCodes();
             throw new IllegalArgumentException("At least one of the flight codes have not been registered");
+        }
 
-        if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(airlineName, flightCodes))
+        if (airlineRepository.flightCodeAlreadyExistsForOtherAirlines(airlineName, flightCodes)) {
+            semaphoreAdmin.readUnlockFlightCodes();
             throw new IllegalArgumentException("A requested flight code is assigned to another airline");
+        }
 
-        if (!airlineRepository.allFlightCodesAreNew(airlineName, flightCodes))
+        if (!airlineRepository.allFlightCodesAreNew(airlineName, flightCodes)) {
+            semaphoreAdmin.readUnlockFlightCodes();
             throw new IllegalStateException("At least one flight code has been assigned, is pending or has ended");
+        }
 
         CheckinAssignment checkinAssignment = new CheckinAssignment(airlineName, flightCodes, counterCount);
+
+        semaphoreAdmin.unlockReadLockWriteFlightCodes();
 
         Pair<Boolean, Integer> toRet = sectors.get(sectorName).assignCounterGroup(checkinAssignment);
         airlineRepository.markFlightsAsAssigned(airlineName, flightCodes);
 
-        semaphoreAdmin.writeUnlockSector(sectorName);
+        semaphoreAdmin.writeUnlockFlightCodes();
         return toRet;
     }
 

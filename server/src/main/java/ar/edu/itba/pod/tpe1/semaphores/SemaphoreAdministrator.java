@@ -2,19 +2,20 @@ package ar.edu.itba.pod.tpe1.semaphores;
 
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SemaphoreAdministrator {
     private final ConcurrentSkipListMap<String, ReadWriteLock> bookingReadWriteLockMap;
-    private final ConcurrentSkipListMap<String, ReadWriteLock> flightCodeReadWriteLockMap;
+    private final ReadWriteLock flightCodesReadWriteLock;
+    private final ConcurrentSkipListMap<String, ReadWriteLock> airlineReadWriteLockMap;
+
     private final ConcurrentSkipListMap<String, ReadWriteLock> sectorReadWriteLockMap;
     public SemaphoreAdministrator() {
         this.bookingReadWriteLockMap = new ConcurrentSkipListMap<>();
-        this.flightCodeReadWriteLockMap = new ConcurrentSkipListMap<>();
+        this.flightCodesReadWriteLock = new ReentrantReadWriteLock();
+        this.airlineReadWriteLockMap = new ConcurrentSkipListMap<>();
         this.sectorReadWriteLockMap = new ConcurrentSkipListMap<>();
     }
 
@@ -25,20 +26,6 @@ public class SemaphoreAdministrator {
         return bookingReadWriteLockMap.get(bookingCode);
     }
 
-    private ReadWriteLock getBookingLock(String bookingCode) {
-        return bookingReadWriteLockMap.get(bookingCode);
-    }
-
-    // FLIGHTCODE
-    public synchronized ReadWriteLock addFlightCodeLock(String flightCode) {
-        flightCodeReadWriteLockMap.put(flightCode, new ReentrantReadWriteLock());
-        return flightCodeReadWriteLockMap.get(flightCode);
-    }
-
-    private ReadWriteLock getFlightCodeLock(String flightCode) {
-        return flightCodeReadWriteLockMap.get(flightCode);
-    }
-
     // SECTOR
     public synchronized void addSectorLock(String sectorName) {
         if (sectorReadWriteLockMap.get(sectorName) != null)
@@ -47,82 +34,100 @@ public class SemaphoreAdministrator {
         sectorReadWriteLockMap.put(sectorName, new ReentrantReadWriteLock());
     }
 
-    private ReadWriteLock getSectorLock(String sectorName){
-        return sectorReadWriteLockMap.get(sectorName);
-    }
-
-    private void lockSector(String sectorName){
-
-    }
 
     // BOOKING AND FLIGHTCODE
-    public void addAndWriteLockBookingAndFlightCode(Booking booking) {
+    public void addAndWriteLockBookingAndFlightCodes(Booking booking) {
         ReadWriteLock bookingLock = addBookingLock(booking.getBookingCode());
-        ReadWriteLock flightCodeLock = addFlightCodeLock(booking.getFlightCode());
 
         bookingLock.writeLock().lock();
-        flightCodeLock.writeLock().lock();
+        flightCodesReadWriteLock.writeLock().lock();
     }
 
-    public void writeUnlockBookingAndFlightCode(Booking booking) {
-        ReadWriteLock bookingLock = getBookingLock(booking.getBookingCode());
-        ReadWriteLock flightCodeLock = getFlightCodeLock(booking.getFlightCode());
+    public void writeUnlockBookingAndFlightCodes(Booking booking) {
+        ReadWriteLock bookingLock = bookingReadWriteLockMap.get(booking.getBookingCode());
 
         bookingLock.writeLock().unlock();
-        flightCodeLock.writeLock().unlock();
+        flightCodesReadWriteLock.writeLock().unlock();
     }
 
     // BOOKING
 
     public void writeLockBooking(String bookingCode) {
-        ReadWriteLock bookingLock = getBookingLock(bookingCode);
+        ReadWriteLock bookingLock = bookingReadWriteLockMap.get(bookingCode);
 
         if (bookingLock != null)
             bookingLock.writeLock().lock();
     }
 
     public void writeUnlockBooking(String bookingCode) {
-        ReadWriteLock bookingLock = getBookingLock(bookingCode);
+        ReadWriteLock bookingLock = bookingReadWriteLockMap.get(bookingCode);
 
         if (bookingLock != null)
             bookingLock.writeLock().unlock();
     }
 
     public void readLockBooking(String bookingCode) {
-        ReadWriteLock bookingLock = getBookingLock(bookingCode);
+        ReadWriteLock bookingLock = bookingReadWriteLockMap.get(bookingCode);
 
         bookingLock.readLock().lock();
     }
 
     public void readUnlockBooking(String bookingCode) {
-        ReadWriteLock bookingLock = getBookingLock(bookingCode);
+        ReadWriteLock bookingLock = bookingReadWriteLockMap.get(bookingCode);
 
         bookingLock.readLock().unlock();
     }
 
     public void writeLockSector(String sectorName) {
-        ReadWriteLock sectorLock = getSectorLock(sectorName);
+        ReadWriteLock sectorLock = sectorReadWriteLockMap.get(sectorName);
 
         sectorLock.writeLock().lock();
     }
 
     public void writeUnlockSector(String sectorName) {
-        ReadWriteLock sectorLock = getSectorLock(sectorName);
+        ReadWriteLock sectorLock = sectorReadWriteLockMap.get(sectorName);
 
         sectorLock.writeLock().unlock();
     }
 
-    public void writeLockFlightCode(String flightCode) {
-        ReadWriteLock flightCodeLock = getFlightCodeLock(flightCode);
-
-        if (flightCodeLock != null)
-            flightCodeLock.writeLock().lock();
+    public void writeLockFlightCodes() {
+        flightCodesReadWriteLock.writeLock().lock();
     }
 
-    public void writeUnlockFlightCode(String flightCode) {
-        ReadWriteLock flightCodeLock = getFlightCodeLock(flightCode);
+    public void writeUnlockFlightCodes() {
+        flightCodesReadWriteLock.writeLock().unlock();
+    }
 
-        if (flightCodeLock != null)
-            flightCodeLock.writeLock().unlock();
+    public void unlockReadLockWriteFlightCodes() {
+        readUnlockFlightCodes();
+        writeLockFlightCodes();
+    }
+
+    public void readLockFlightCodes() {
+        flightCodesReadWriteLock.readLock().lock();
+    }
+
+    public void readUnlockFlightCodes() {
+        flightCodesReadWriteLock.readLock().unlock();
+    }
+
+    public void addAndWriteLockAirline(String airlineName) {
+        airlineReadWriteLockMap.put(airlineName, new ReentrantReadWriteLock());
+
+        writeLockAirlineName(airlineName);
+    }
+
+    public void writeLockAirlineName(String airlineName) {
+        ReadWriteLock airlineNameLock = airlineReadWriteLockMap.get(airlineName);
+
+        if (airlineNameLock != null)
+            airlineNameLock.writeLock().lock();
+    }
+
+    public void writeUnlockAirlineName(String airlineName) {
+        ReadWriteLock airlineNameLock = airlineReadWriteLockMap.get(airlineName);
+
+        if (airlineNameLock != null)
+            airlineNameLock.writeLock().unlock();
     }
 }
