@@ -27,13 +27,27 @@ public class RegisterAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            register(channel, arguments.getAirline());
-        } catch (Exception e) {
-            logger.error("Failed to register", e);
+        if (arguments.getAirline().isPresent()) {
+            try {
+                register(channel, arguments.getAirline().get());
+            } catch (Exception e) {
+                handleRegistrationError(e);
+            }
+        } else {
+            printRegistrationUsageInstructions();
         }
     }
 
+
+    private void handleRegistrationError(Exception e) {
+        logger.error("Failed to register due to an error: " + e.getMessage(), e);
+        printRegistrationUsageInstructions();
+    }
+
+    private void printRegistrationUsageInstructions() {
+        logger.error("Invalid or missing airline parameter.");
+        logger.error("Required parameter: -Dairline=<airlineName>");
+    }
     private void register(ManagedChannel channel, String airlineName) {
         EventsServiceGrpc.EventsServiceStub asyncStub = EventsServiceGrpc.newStub(channel);
         StreamObserver<EventResponse> responseObserver = new StreamObserver<EventResponse>() {

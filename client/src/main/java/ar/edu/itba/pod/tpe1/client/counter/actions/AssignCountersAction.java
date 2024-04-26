@@ -22,12 +22,27 @@ public class AssignCountersAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            assignCounters(channel, arguments.getSector(), arguments.getFlights(), arguments.getAirline(), arguments.getCounterCount());
-        } catch (Exception e) {
-            System.out.println("Failed to assign counters");
-            System.out.println("Should have parameters: -Dsector, -Dflights, -Dairline, -DcounterCount");
+        if(arguments.getSector().isPresent() && arguments.getFlights().isPresent() && arguments.getAirline().isPresent() && arguments.getCounterCount().isPresent()){
+            try{
+                assignCounters(channel, arguments.getSector().get(), arguments.getFlights().get(), arguments.getAirline().get(), arguments.getCounterCount().get());
+            }
+            catch (Exception e){
+                handleAssignCountersError(e);
+            }
         }
+        else {
+            printAssignCountersUsageInstructions();
+        }
+    }
+
+    private void handleAssignCountersError(Exception e) {
+        System.out.println("Failed to assign counters due to an error: " + e.getMessage());
+        printAssignCountersUsageInstructions();
+    }
+
+    private void printAssignCountersUsageInstructions() {
+        System.out.println("Invalid or missing parameters.");
+        System.out.println("Required parameters: -Dsector=<sector> -Dflights=<flights> -Dairline=<airline> -DcounterCount=<count>");
     }
 
     private void assignCounters(ManagedChannel channel, String sector, List<String> flights, String airline, Integer counterCount) {

@@ -25,13 +25,27 @@ public class AddSectorAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            addSector(channel, arguments.getSector());
-        } catch (Exception e) {
-            System.out.println("Failed to add sector");
-            System.out.println("Should have arguments: -Dsector");
+        if (arguments.getSector().isPresent()) {
+            try {
+                addSector(channel, arguments.getSector().get());
+            } catch (Exception e) {
+                handleAddSectorError(e);
+            }
+        } else {
+            printSectorUsageInstructions();
         }
     }
+
+    private void handleAddSectorError(Exception e) {
+        System.out.println("Failed to add sector due to an error: " + e.getMessage());
+        printSectorUsageInstructions();
+    }
+
+    private void printSectorUsageInstructions() {
+        System.out.println("No valid sector selected.");
+        System.out.println("Please include the argument: -Dsector=<sectorName>");
+    }
+
 
     private static void addSector(ManagedChannel channel, String sector) {
 

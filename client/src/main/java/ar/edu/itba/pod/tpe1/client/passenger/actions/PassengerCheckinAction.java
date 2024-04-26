@@ -27,11 +27,26 @@ public class PassengerCheckinAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            passengerCheckin(channel, arguments.getBooking(), arguments.getSector(), arguments.getCounterNumber());
-        } catch (Exception e) {
-            System.out.println("Failed to checkin");
+        if (arguments.getBooking().isPresent() && arguments.getSector().isPresent() && arguments.getCounterNumber().isPresent()) {
+            try {
+                passengerCheckin(channel, arguments.getBooking().get(), arguments.getSector().get(), arguments.getCounterNumber().get());
+            } catch (Exception e) {
+                handleCheckinError(e);
+            }
+        } else {
+            printCheckinUsageInstructions();
         }
+    }
+
+
+    private void handleCheckinError(Exception e) {
+        System.out.println("Failed to check in due to an error: " + e.getMessage());
+        printCheckinUsageInstructions();
+    }
+
+    private void printCheckinUsageInstructions() {
+        System.out.println("Invalid or missing parameters for checking in.");
+        System.out.println("Required parameters: -Dbooking=<bookingCode> -Dsector=<sectorName> -DcounterNumber=<counterNumber>");
     }
 
     private void passengerCheckin(ManagedChannel channel, String booking, String sector, int counterNumber) {

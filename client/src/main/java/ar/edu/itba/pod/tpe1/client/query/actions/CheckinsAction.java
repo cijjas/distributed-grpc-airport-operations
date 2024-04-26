@@ -26,14 +26,30 @@ public class CheckinsAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            String sectorName = arguments.getSector() != null ? arguments.getSector() : "";
-            String airlineName = arguments.getAirline() != null ? arguments.getAirline() : "";
+        if(arguments.getOutPath().isPresent()){
+            try {
+                String sectorName = arguments.getSector().isPresent() ? arguments.getSector().get() : "";
+                String airlineName = arguments.getAirline().isPresent() ? arguments.getAirline().get() : "";
 
-            checkins(channel, sectorName, airlineName, arguments.getOutPath());
-        } catch (Exception e) {
-            System.out.println("An error occurred fetching the checkins");
+                checkins(channel, sectorName, airlineName, arguments.getOutPath().get());
+            } catch (Exception e) {
+                handleCheckinsError(e);
+            }
         }
+        else{
+            printCheckinsUsageInstructions();
+        }
+    }
+
+    private void handleCheckinsError(Exception e) {
+        System.out.println("An error occurred fetching the checkins: " + e.getMessage());
+        printCheckinsUsageInstructions();
+    }
+
+    private void printCheckinsUsageInstructions() {
+        System.out.println("Invalid or missing output path parameter.");
+        System.out.println("Required parameter: -DoutPath=<outputPath>");
+        System.out.println("Optional parameters: -Dsector=<sectorName> (default: all sectors), -Dairline=<airlineName> (default: all airlines)");
     }
 
     private void checkins(ManagedChannel channel, String sectorName, String airlineName, Path outPath) {

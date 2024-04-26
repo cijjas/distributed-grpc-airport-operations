@@ -28,13 +28,27 @@ public class ManifestAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            manifest(channel, arguments.getInPath());
-        } catch (Exception e) {
-            System.out.println("Failed to manifest");
-            System.out.println("Should have arguments: -DinPath");
+        if (arguments.getInPath().isPresent()) {
+            try {
+                manifest(channel, arguments.getInPath().get());
+            } catch (Exception e) {
+                handleManifestError(e);
+            }
+        } else {
+            printManifestUsageInstructions();
         }
     }
+
+    private void handleManifestError(Exception e) {
+        System.out.println("Failed to manifest due to an error: " + e.getMessage());
+        printManifestUsageInstructions();
+    }
+
+    private void printManifestUsageInstructions() {
+        System.out.println("No valid path selected.");
+        System.out.println("Please include the argument: -DinPath=<pathToFile>");
+    }
+
 
     private static void manifest(ManagedChannel channel, Path manifestPath)  {
         AdminServiceGrpc.AdminServiceStub asyncStub = AdminServiceGrpc.newStub(channel);
