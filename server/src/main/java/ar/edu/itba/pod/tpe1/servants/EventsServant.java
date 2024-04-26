@@ -6,18 +6,25 @@ import ar.edu.itba.pod.grpc.StatusResponse;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
-    private final ConcurrentMap<String, StreamObserver<EventResponse>> subscribers = new ConcurrentHashMap<>();
 
-    public EventsServant() {
+    private final Logger logger = LoggerFactory.getLogger(EventsServant.class);
+    private final ConcurrentMap<String, StreamObserver<EventResponse>> subscribers;
+
+    public EventsServant(ConcurrentMap<String, StreamObserver<EventResponse>> subscribers) {
+        this.subscribers = subscribers;
     }
+
 
     @Override
     public void register(StringValue request, StreamObserver<EventResponse> responseObserver) {
+        logger.info("Registering for airline: {}", request.getValue());
         String airlineName = request.getValue();
         subscribers.put(airlineName, responseObserver);
         responseObserver.onNext(EventResponse.newBuilder()

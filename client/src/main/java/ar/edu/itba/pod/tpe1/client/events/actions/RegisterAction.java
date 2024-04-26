@@ -7,12 +7,15 @@ import ar.edu.itba.pod.tpe1.client.events.EventsClient;
 import ar.edu.itba.pod.tpe1.client.events.EventsClientArguments;
 import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jdk.jfr.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 public class RegisterAction implements Action {
@@ -25,7 +28,6 @@ public class RegisterAction implements Action {
         this.arguments = arguments;
     }
 
-    @Override
     public void execute() {
         if (arguments.getAirline().isPresent()) {
             try {
@@ -49,30 +51,49 @@ public class RegisterAction implements Action {
         logger.error("Required parameter: -Dairline=<airlineName>");
     }
     private void register(ManagedChannel channel, String airlineName) {
+        logger.info("Registering for airline: {}", airlineName);
         EventsServiceGrpc.EventsServiceStub asyncStub = EventsServiceGrpc.newStub(channel);
+        final CountDownLatch finishLatch = new CountDownLatch(1);
         StreamObserver<EventResponse> responseObserver = new StreamObserver<EventResponse>() {
             @Override
-            public void onNext(EventResponse value) {
-                logger.info("Received notification: " + value.getMessage());
+            public void onNext(EventResponse response) {
+                if (response.getStatus().getCode() == Status.OK.getCode().value()) {
+                    System.out.println(response.getMessage());
+                } else {
+                    System.out.println(response.getStatus().getMessage());
+                }
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.error("Streaming error: " + t.getMessage());
+                System.err.println(t.getMessage());
+                finishLatch.countDown();
             }
 
             @Override
             public void onCompleted() {
-                logger.info("Stream completed");
+                System.out.println("Unregistered");
+                finishLatch.countDown();
             }
         };
 
-        asyncStub.register(
-            StringValue
-                .newBuilder()
-                .setValue(airlineName)
-                .build(),
-            responseObserver
-        );
+        StringValue request = StringValue.newBuilder().setValue(airlineName).build();
+        asyncStub.register(request, responseObserver);
+
+        try {
+            finishLatch.await();
+            channel.shutdownNow();
+            if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.out.println("Channel did not terminate within the allowed time");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Interrupted while waiting for channel to terminate");
+        } finally {
+            if (!channel.isShutdown()) {
+                channel.shutdownNow();
+            }
+        }
+
     }
 }

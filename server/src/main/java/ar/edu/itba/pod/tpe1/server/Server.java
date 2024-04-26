@@ -26,7 +26,7 @@ public class Server {
 
         // TODO SACAR AL FINAL
         addDataToAirport(airportRepository);
-
+        EventsServant eventsServant = new EventsServant(new ConcurrentHashMap<>());
         io.grpc.Server server = ServerBuilder.forPort(port)
                 .addService(new AdminServant(
                         airportRepository
@@ -37,7 +37,7 @@ public class Server {
                 .addService(new QueryServant(
                         airportRepository
                 ))
-                .addService(new EventsServant())
+                .addService(eventsServant)
                 .build();
 
         try{
