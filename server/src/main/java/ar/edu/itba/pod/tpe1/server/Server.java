@@ -4,6 +4,7 @@ import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
 import ar.edu.itba.pod.tpe1.servants.AdminServant;
 import ar.edu.itba.pod.tpe1.servants.CounterServant;
+import ar.edu.itba.pod.tpe1.servants.EventsServant;
 import ar.edu.itba.pod.tpe1.servants.QueryServant;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public class Server {
                 .addService(new QueryServant(
                         airportRepository
                 ))
+                .addService(new EventsServant())
                 .build();
         server.start();
         logger.info("Server started, listening on " + port);

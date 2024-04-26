@@ -3,26 +3,23 @@ package ar.edu.itba.pod.tpe1.servants;
 import ar.edu.itba.pod.grpc.EventResponse;
 import ar.edu.itba.pod.grpc.EventsServiceGrpc;
 import ar.edu.itba.pod.grpc.StatusResponse;
-import ar.edu.itba.pod.tpe1.repositories.NotificationRepository;
 import com.google.protobuf.StringValue;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
-    private final NotificationRepository notificationRepository;
+    private final ConcurrentMap<String, StreamObserver<EventResponse>> subscribers = new ConcurrentHashMap<>();
 
-    public EventsServant(NotificationRepository notificationRepository) {
-        this.notificationRepository = notificationRepository;
+    public EventsServant() {
     }
 
     @Override
     public void register(StringValue request, StreamObserver<EventResponse> responseObserver) {
         String airlineName = request.getValue();
-        notificationRepository.putSubscriber(airlineName, responseObserver);
-
+        subscribers.put(airlineName, responseObserver);
         responseObserver.onNext(EventResponse.newBuilder()
                 .setMessage("Registered successfully for " + airlineName)
                 .setStatus(
@@ -37,7 +34,7 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
     @Override
     public void unregister(StringValue request, StreamObserver<EventResponse> responseObserver) {
         String airlineName = request.getValue();
-        StreamObserver<EventResponse> observer = notificationRepository.removeSubscriber(airlineName);
+        StreamObserver<EventResponse> observer = subscribers.remove(airlineName);
         if (observer != null) {
             observer.onCompleted();  // Close the stream
         }
@@ -49,5 +46,18 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
                         .build())
                 .build());
         responseObserver.onCompleted();
+    }
+
+    public void notify(String airlineName, String message) {
+        StreamObserver<EventResponse> observer = subscribers.get(airlineName);
+        if (observer != null) {
+            observer.onNext(EventResponse.newBuilder()
+                    .setMessage(message)
+                    .setStatus(StatusResponse.newBuilder()
+                            .setCode(Status.OK.getCode().value())
+                            .setMessage("Notification sent")
+                            .build())
+                    .build());
+        }
     }
 }
