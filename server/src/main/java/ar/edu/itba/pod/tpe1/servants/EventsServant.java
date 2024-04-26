@@ -21,33 +21,33 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
     @Override
     public void register(StringValue request, StreamObserver<EventResponse> responseObserver) {
         String airlineName = request.getValue();
-        try{
-            notificationRepository.registerAirline(airlineName);
-            responseObserver.onNext(EventResponse.newBuilder().setMessage(airlineName + " registered successfully for check-in events").build());
-            while (notificationRepository.isAirlineRegistered(airlineName)){
-                if(notificationRepository.hasNewNotifications(airlineName)){
-                    List<String> notifications = notificationRepository.getLatestNotifications(airlineName);
-                    for(String notification : notifications){
-                        responseObserver.onNext(EventResponse.newBuilder().setMessage(notification).setStatus(StatusResponse.newBuilder().setCode(Status.OK.getCode().value()).build()).build());
-                    }
-                }
-            }
-        } catch (IllegalArgumentException e){
-            responseObserver.onNext(EventResponse.newBuilder().setStatus(StatusResponse.newBuilder().setCode(Status.INVALID_ARGUMENT.getCode().value()).setMessage(e.getMessage()).build()).build());
-        } finally {
-            responseObserver.onCompleted();
-        }
+        notificationRepository.putSubscriber(airlineName, responseObserver);
+
+        responseObserver.onNext(EventResponse.newBuilder()
+                .setMessage("Registered successfully for " + airlineName)
+                .setStatus(
+                        StatusResponse.newBuilder()
+                                .setCode(Status.OK.getCode().value())
+                                .setMessage("Registered successfully")
+                                .build()
+                )
+                .build());
     }
 
     @Override
     public void unregister(StringValue request, StreamObserver<EventResponse> responseObserver) {
-        try{
-            notificationRepository.unregisterAirline(request.getValue());
-            responseObserver.onNext(EventResponse.newBuilder().setMessage(request.getValue() + " unregistered successfully for events").build());
-        } catch (IllegalArgumentException e){
-            responseObserver.onNext(EventResponse.newBuilder().setStatus(StatusResponse.newBuilder().setCode(Status.INVALID_ARGUMENT.getCode().value()).setMessage(e.getMessage()).build()).build());
-        } finally {
-            responseObserver.onCompleted();
+        String airlineName = request.getValue();
+        StreamObserver<EventResponse> observer = notificationRepository.removeSubscriber(airlineName);
+        if (observer != null) {
+            observer.onCompleted();  // Close the stream
         }
+        responseObserver.onNext(EventResponse.newBuilder()
+                .setMessage("Unregistered successfully for " + airlineName)
+                .setStatus(StatusResponse.newBuilder()
+                        .setCode(Status.OK.getCode().value())
+                        .setMessage("Unregistered successfully")
+                        .build())
+                .build());
+        responseObserver.onCompleted();
     }
 }
