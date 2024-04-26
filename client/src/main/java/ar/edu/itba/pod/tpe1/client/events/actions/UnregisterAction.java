@@ -22,8 +22,6 @@ public class UnregisterAction implements Action {
         this.arguments = arguments;
     }
 
-    // TODO: Implement
-
     @Override
     public void execute() {
         if (arguments.getAirline().isPresent()) {
@@ -52,9 +50,9 @@ public class UnregisterAction implements Action {
         EventResponse serverResponse = stub.unregister(StringValue.of(airlineName));
 
         if (serverResponse.getStatus().getCode() == Status.OK.getCode().value()) {
-            logger.info("Unregistered successfully for " + airlineName);
+            System.out.println(serverResponse.getMessage());
         } else {
-            logger.error("Failed to unregister for " + airlineName);
+            System.out.println(serverResponse.getStatus().getMessage());
         }
 
     }

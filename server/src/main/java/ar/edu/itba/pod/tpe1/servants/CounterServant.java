@@ -16,15 +16,18 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.stream.IntStream;
 
 public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
 
     private static final Logger log = LoggerFactory.getLogger(CounterServant.class);
     private final AirportRepository airportRepository;
+    private final EventsServant eventsServant;
 
-    public CounterServant(AirportRepository airportRepository) {
+    public CounterServant(AirportRepository airportRepository,EventsServant eventsServant) {
         this.airportRepository = airportRepository;
+        this.eventsServant = eventsServant;
     }
 
     @Override
@@ -139,6 +142,10 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                                 .setCounterTo(assignedCounters.getRight() + request.getCounterCount() - 1)// TODO: luca
                                 .build()
                 );
+//                2 counters (3-4) in Sector C are now checking in passengers from AmericanAirlines AA123|AA124|AA125 flights
+                if(eventsServant.isRegistered(request.getAirlineName()))
+                    eventsServant.notify(request.getAirlineName(), String.format("%d counters (%d-%d) in Sector %s are now checking in passengers from %s %s flights",
+                        request.getCounterCount(), assignedCounters.getRight(), assignedCounters.getRight() + request.getCounterCount() - 1, request.getSectorName(),request.getAirlineName(), String.join("|", request.getFlightCodesList()) ));
             }
             else{
                 // counter is pending
@@ -156,6 +163,16 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                                 .setPendingAssignments(assignedCounters.getRight())
                                 .build()
                 );
+
+
+                eventsServant.notify(request.getAirlineName(),
+                        String.format("%d counters in Sector %s for flights %s is pending with %d other pendings ahead",
+                                request.getCounterCount(),
+                                request.getSectorName(),
+                                String.join("|",
+                                request.getFlightCodesList()),
+                                assignedCounters.getRight()));
+
             }
 
 
@@ -192,6 +209,22 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                             .addAllFlightCodes(counterGroup.getFlightCodes())
                             .build()
             );
+
+            if(eventsServant.isRegistered(request.getAirlineName()))
+                eventsServant.notify(request.getAirlineName(),String.format("Ended check-in for flights %s on counters (%d-%d) from Sector %s",
+                        String.join("|", counterGroup.getFlightCodes()), request.getCounterFrom(), request.getCounterFrom() + counterGroup.getCounterCount() - 1, request.getSectorName()));
+
+            List<CheckinAssignment> pendingAssignments = airportRepository.listPendingAssignments(request.getSectorName());
+
+            IntStream.range(0, pendingAssignments.size())
+                .forEach(idx -> {
+                    CheckinAssignment pending = pendingAssignments.get(idx);
+                    if(eventsServant.isRegistered(pending.airlineName()))
+                        eventsServant.notify(pending.airlineName(), String.format("%d counters in Sector %s for flights %s is pending with %d other pendings ahead",
+                                pending.counterCount(), request.getSectorName(), String.join("|", pending.flightCodes()), idx ));
+                });
+
+
         } catch (IllegalArgumentException e) {
             responseObserver.onNext(
                     FreeCountersResponse.newBuilder()
@@ -226,6 +259,11 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                                             .setCounterNumber(supposedBooking.getCheckinCounter())
                                             .build()
                             );
+
+                            if(eventsServant.isRegistered(supposedBooking.getAirlineName())){
+                                eventsServant.notify(supposedBooking.getAirlineName(), String.format("Check-in successful of %s for flight %s at counter %d in Sector %s",
+                                        supposedBooking.getBookingCode(), supposedBooking.getFlightCode(), supposedBooking.getCheckinCounter(), supposedBooking.getSector()));
+                            }
                         }
 
                     }

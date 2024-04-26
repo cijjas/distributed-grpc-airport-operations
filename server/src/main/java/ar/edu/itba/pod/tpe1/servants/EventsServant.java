@@ -26,7 +26,7 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
     public void register(StringValue request, StreamObserver<EventResponse> responseObserver) {
         logger.info("Registering for airline: {}", request.getValue());
         String airlineName = request.getValue();
-        subscribers.put(airlineName, responseObserver);
+        subscribers.put(airlineName.toUpperCase(), responseObserver);
         responseObserver.onNext(EventResponse.newBuilder()
                 .setMessage("Registered successfully for " + airlineName)
                 .setStatus(
@@ -41,7 +41,7 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
     @Override
     public void unregister(StringValue request, StreamObserver<EventResponse> responseObserver) {
         String airlineName = request.getValue();
-        StreamObserver<EventResponse> observer = subscribers.remove(airlineName);
+        StreamObserver<EventResponse> observer = subscribers.remove(airlineName.toUpperCase());
         if (observer != null) {
             observer.onCompleted();  // Close the stream
         }
@@ -55,8 +55,12 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    public boolean isRegistered(String airlineName){
+        return subscribers.containsKey(airlineName.toUpperCase());
+    }
+
     public void notify(String airlineName, String message) {
-        StreamObserver<EventResponse> observer = subscribers.get(airlineName);
+        StreamObserver<EventResponse> observer = subscribers.get(airlineName.toUpperCase());
         if (observer != null) {
             observer.onNext(EventResponse.newBuilder()
                     .setMessage(message)

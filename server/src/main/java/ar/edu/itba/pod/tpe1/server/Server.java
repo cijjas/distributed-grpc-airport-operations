@@ -2,10 +2,7 @@ package ar.edu.itba.pod.tpe1.server;
 
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
-import ar.edu.itba.pod.tpe1.servants.AdminServant;
-import ar.edu.itba.pod.tpe1.servants.CounterServant;
-import ar.edu.itba.pod.tpe1.servants.EventsServant;
-import ar.edu.itba.pod.tpe1.servants.QueryServant;
+import ar.edu.itba.pod.tpe1.servants.*;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +29,14 @@ public class Server {
                         airportRepository
                 ))
                 .addService(new CounterServant(
-                        airportRepository
+                        airportRepository,
+                        eventsServant
                 ))
                 .addService(new QueryServant(
                         airportRepository
+                )).addService(new PassengerServant(
+                        airportRepository,
+                        eventsServant
                 ))
                 .addService(eventsServant)
                 .build();

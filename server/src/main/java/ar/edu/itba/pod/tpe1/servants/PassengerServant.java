@@ -17,9 +17,11 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
 
     private static final Logger log = LoggerFactory.getLogger(PassengerServant.class);
     private final AirportRepository airportRepository;
+    private final EventsServant eventsServant;
 
-    public PassengerServant(AirportRepository airportRepository) {
+    public PassengerServant(AirportRepository airportRepository, EventsServant eventsServant) {
         this.airportRepository = airportRepository;
+        this.eventsServant = eventsServant;
     }
 
     @Override
@@ -75,9 +77,19 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                     .setFlightCode(passengerStatusInfo.getBooking().getFlightCode())
                     .setAirlineName(passengerStatusInfo.getCounterGroup().getAirlineName())
                     .setCounterFrom(passengerStatusInfo.getCounterGroup().getCounterStart())
-                    .setCounterTo(passengerStatusInfo.getCounterGroup().getCounterStart() + passengerStatusInfo.getCounterGroup().getCounterCount() - 1)
+                    .setCounterTo(passengerStatusInfo.getCounterGroup().getCounterStart())
                     .setSectorName(passengerStatusInfo.getSectorName())
                     .setPeopleInLine(passengerStatusInfo.getCounterGroup().getPendingPassengers().size());
+
+            if(eventsServant.isRegistered(passengerStatusInfo.getBooking().getAirlineName()))
+                eventsServant.notify(passengerStatusInfo.getBooking().getAirlineName(), String.format("Booking %s for flight %s from %s is now waiting to check-in on counters (%d-%d) in Sector %s with %d people in line",
+                        request.getBookingCode(),
+                        passengerStatusInfo.getBooking().getFlightCode(),
+                        passengerStatusInfo.getCounterGroup().getAirlineName(),
+                        passengerStatusInfo.getCounterGroup().getCounterStart(),
+                        passengerStatusInfo.getCounterGroup().getCounterStart(),
+                        passengerStatusInfo.getSectorName(),
+                        passengerStatusInfo.getCounterGroup().getPendingPassengers().size()));
 
             responseObserver.onNext(responseBuilder.build());
         } catch (IllegalArgumentException e) {
