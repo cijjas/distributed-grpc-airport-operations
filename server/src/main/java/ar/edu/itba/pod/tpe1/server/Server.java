@@ -2,8 +2,10 @@ package ar.edu.itba.pod.tpe1.server;
 
 import ar.edu.itba.pod.tpe1.models.Booking.Booking;
 import ar.edu.itba.pod.tpe1.repositories.AirportRepository;
+import ar.edu.itba.pod.tpe1.repositories.NotificationRepository;
 import ar.edu.itba.pod.tpe1.servants.AdminServant;
 import ar.edu.itba.pod.tpe1.servants.CounterServant;
+import ar.edu.itba.pod.tpe1.servants.EventsServant;
 import ar.edu.itba.pod.tpe1.servants.QueryServant;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
@@ -17,30 +19,34 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args){
         logger.info(" Server Starting ...");
 
-        int port = 50051;
-        AirportRepository airportRepository = new AirportRepository(
-                new ConcurrentHashMap<>(),
-                new ConcurrentHashMap<>(),
-                new ConcurrentHashMap<>(),
-                new ConcurrentHashMap<>()
-        );
+        int port = parsePort(args);
+        AirportRepository airportRepository = initializeAirportRepository();
+        NotificationRepository notificationRepository = new NotificationRepository(airportRepository.getPassengerRepository());
+
+        // TODO SACAR AL FINAL
         addDataToAirport(airportRepository);
+
         io.grpc.Server server = ServerBuilder.forPort(port)
-                .addService(new AdminServant(
-                        airportRepository
-                ))
-                .addService(new CounterServant(
-                        airportRepository
-                ))
-                .addService(new QueryServant(
-                        airportRepository
-                ))
+                .addService(new AdminServant(airportRepository))
+                .addService(new CounterServant(airportRepository))
+                .addService(new QueryServant(airportRepository))
+                .addService(new EventsServant(notificationRepository))
                 .build();
+
+        try{
+            startServer(server, port);
+        }
+        catch (Exception e){
+            logger.error("Error starting server", e);
+        }
+    }
+
+    private static void startServer(io.grpc.Server server, int port) throws IOException, InterruptedException {
         server.start();
-        logger.info("Server started, listening on " + port);
+        logger.info("Server started, listening on {}", port);
         server.awaitTermination();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Shutting down gRPC server since JVM is shutting down");
@@ -49,6 +55,33 @@ public class Server {
         }));
     }
 
+
+    private static AirportRepository initializeAirportRepository() {
+        return new AirportRepository(
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>(),
+                new ConcurrentHashMap<>()
+        );
+    }
+
+    private static int parsePort(String[] args) {
+        for (String arg : args) {
+            if (arg.startsWith("-Dport=")) {
+                try {
+                    return Integer.parseInt(arg.substring(7));
+                } catch (NumberFormatException e) {
+                    logger.error("Invalid port number provided. Please use the format -Dport=<portNumber>");
+                    System.exit(1);
+                }
+            }
+        }
+        logger.error("No port number provided. Please specify the port using -Dport=<portNumber>");
+        System.exit(1);
+        return -1;
+    }
+
+    // TODO BORRAR
     public static void addDataToAirport(AirportRepository airportRepository) {
         airportRepository.addSector(SECTOR_A);
         airportRepository.addSector(SECTOR_B);

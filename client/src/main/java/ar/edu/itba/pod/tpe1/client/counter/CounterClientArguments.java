@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Optional;
 
 @Setter
-@Getter
 public class CounterClientArguments extends Arguments {
-
+    @Getter
     private CounterClientAction action;
     private String sector;
     private Integer counterFrom;
@@ -17,5 +17,30 @@ public class CounterClientArguments extends Arguments {
     private List<String> flights;
     private String airline;
     private Integer counterCount;
+
+    public Optional<String> getSector() {
+        return Optional.ofNullable(sector);
+    }
+
+    public Optional<Integer> getCounterFrom() {
+        return Optional.ofNullable(counterFrom);
+    }
+
+    public Optional<Integer> getCounterTo() {
+        return Optional.ofNullable(counterTo);
+    }
+
+    public Optional<List<String>> getFlights() {
+        return Optional.ofNullable(flights);
+    }
+
+    public Optional<String> getAirline() {
+        return Optional.ofNullable(airline);
+    }
+
+    public Optional<Integer> getCounterCount() {
+        return Optional.ofNullable(counterCount);
+    }
+
 
 }

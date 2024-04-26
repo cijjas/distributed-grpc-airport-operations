@@ -21,12 +21,27 @@ public class FreeCountersAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            freeCounters(channel, arguments.getSector(),  arguments.getCounterFrom(), arguments.getAirline());
-        } catch (Exception e) {
-            System.out.println("Failed to free counters");
-            System.out.println("Should have parameters: -Dsector, -DcounterFrom, -Dairline");
+        if(arguments.getSector().isPresent() && arguments.getCounterFrom().isPresent() && arguments.getAirline().isPresent()){
+            try{
+                freeCounters(channel, arguments.getSector().get(), arguments.getCounterFrom().get(), arguments.getAirline().get());
+            }
+            catch (Exception e){
+                handleFreeCountersError(e);
+            }
         }
+        else {
+            printFreeCountersUsageInstructions();
+        }
+    }
+
+    private void handleFreeCountersError(Exception e) {
+        System.out.println("Failed to free counters due to an error: " + e.getMessage());
+        printFreeCountersUsageInstructions();
+    }
+
+    private void printFreeCountersUsageInstructions() {
+        System.out.println("Invalid or missing parameters for freeing counters.");
+        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<counterStartNumber> -Dairline=<airlineName>");
     }
 
     private void freeCounters(ManagedChannel channel,String sector,  Integer counterFrom, String airline) {

@@ -34,13 +34,31 @@ public class CountersAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            String sectorArgument = arguments.getSector() != null ? arguments.getSector() : "";
-            counters(channel, sectorArgument, arguments.getOutPath());
-        } catch (Exception e) {
-            System.out.println("An error occurred getting the counters data");
+        if(arguments.getOutPath().isPresent()) {
+            try {
+                String sectorArgument = arguments.getSector().isPresent() ? arguments.getSector().get() : "";
+
+                counters(channel, sectorArgument, arguments.getOutPath().get());
+            } catch (Exception e) {
+                System.out.println("An error occurred getting the counters data");
+            }
+        }
+        else{
+            printCountersUsageInstructions();
         }
 
+
+    }
+
+    private void handleCountersError(Exception e) {
+        System.out.println("An error occurred fetching the checkins: " + e.getMessage());
+        printCountersUsageInstructions();
+    }
+
+    private void printCountersUsageInstructions() {
+        System.out.println("Invalid or missing output path parameter.");
+        System.out.println("Required parameter: -DoutPath=<outputPath>");
+        System.out.println("Optional parameters: -Dsector=<sectorName> (default: all sectors), -Dairline=<airlineName> (default: all airlines)");
     }
 
     private void counters(ManagedChannel channel, String sectorName, Path outPath) {

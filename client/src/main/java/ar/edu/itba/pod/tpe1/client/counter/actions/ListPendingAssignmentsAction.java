@@ -27,12 +27,26 @@ public class ListPendingAssignmentsAction implements Action {
 
     @Override
     public void execute() {
-        try {
-            listPendingAssignments(channel, arguments.getSector());
-        } catch (Exception e) {
-            System.out.println("Failed to list pending assignments");
-            System.out.println("Should have parameter: -Dsector");
-        }
+       if (arguments.getSector().isPresent()) {
+           try {
+               listPendingAssignments(channel, arguments.getSector().get());
+           } catch (Exception e) {
+               handleListCountersError(e);
+           }
+       } else {
+           printListCountersUsageInstructions();
+       }
+    }
+
+
+    private void handleListCountersError(Exception e) {
+        System.out.println("Failed to list counters due to an error: " + e.getMessage());
+        printListCountersUsageInstructions();
+    }
+
+    private void printListCountersUsageInstructions() {
+        System.out.println("Invalid or missing parameters for listing counters.");
+        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
     }
 
     private void listPendingAssignments(ManagedChannel channel, String sector) {
