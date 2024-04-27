@@ -172,9 +172,9 @@ sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dse
 # - Se agregaron pasajeros esperados con el código de vuelo pero con otra aerolínea, para al menos uno de los vuelos solicitados
 sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dsector=C -Dflights='AA123|AA124|AA125|BA789' -Dairline=AmericanAirlines -DcounterCount=2
 # - Ya existe al menos un mostrador asignado para al menos uno de los vuelos solicitados (no se permiten agrandar rangos de mostradores asignados)
-sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dsector=C -Dflights='AA123|AA124|AA125' -Dairline=AmericanAirlines -DcounterCount=3 # TODO deberia imprimir un mejor mensaeje
+sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dsector=C -Dflights='AA123|AA124|AA125' -Dairline=AmericanAirlines -DcounterCount=3
 # - Ya existe una solicitud pendiente de un rango de mostradores para al menos uno de los vuelos solicitados (no se permiten reiterar asignaciones pendientes)
-sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dsector=C -Dflights='LT001' -Dairline=AmericanAirlines -DcounterCount=2 # TODO no tira exactamente el mismo error
+sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=assignCounters -Dsector=C -Dflights='LT001' -Dairline=Lufthansa -DcounterCount=2
 # - Ya se asignó y luego se liberó un rango de mostradores para al menos uno de los vuelos solicitados (no se puede iniciar el check-in de un vuelo dos o más veces)
 echo $LINE
 
@@ -207,14 +207,19 @@ echo $LINE
 
 # 3.2 Passenger Check-in
 echo "3.2. Testing Passenger Check-in..."
-sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1 # TODO fijarse bien rangees
-# Expected errors:1. No booking,2. Sector does not exist,3. Counter number mismatch,4. Already in queue,5. Check-in already done
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1
+# Expected errors:
+# 1. No booking,
+# 2. Sector does not exist,
+# 3. Counter number mismatch,
+# 4. Already in queue,
+# 5. Check-in already done
 echo $ERRORS_LINE
 sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ999 -Dsector=C -Dcounter=1
 sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=Z -Dcounter=1
-sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=2 # TODO counter number is wrong
-sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1 # TODO already in line error mas especifico
-sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1 # TODO already checked in error mas especifico
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ236 -Dsector=C -Dcounter=2
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerCheckin -Dbooking=XYZ234 -Dsector=C -Dcounter=1
 echo $LINE
 echo $LINE
 echo "<?> 2.5 realizar checkin"
@@ -222,15 +227,17 @@ sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=checkinCounters -Ds
 echo $LINE
 
 
-## 3.3 Check-in Status
-#echo "3.3. Testing Check-in Status..."
-#sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=ABC123
-#sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=XYZ234
-## Expected errors: No expected passenger, No counter range for passenger
-#sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=XYZ999
-#sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=JKL012
-#echo $LINE
-#
+# 3.3 Check-in Status
+echo "3.3. Testing Check-in Status..."
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=ABC123
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=XYZ234
+# Expected errors: No expected passenger, No counter range for passenger
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=XYZ999
+sh passengerClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=passengerStatus -Dbooking=JKL012
+echo $LINE
+
+
+# testNotifications.sh
 ## 4.1 Register Airline
 #echo "4.1. Testing Register Airline..."
 #sh eventsClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=register -Dairline=AmericanAirlines
