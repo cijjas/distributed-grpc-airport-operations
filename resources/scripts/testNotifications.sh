@@ -44,8 +44,8 @@ echo "Freeing Counters"
 sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=freeCounters -Dsector=A -DcounterFrom=9 -Dairline=AmericanAirlines
 sh counterClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=freeCounters -Dsector=A -DcounterFrom=1 -Dairline=AirCanada
 
-# End notification service
+## End notification service
 #sh eventsClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=unregister -Dairline=AmericanAirlines
-sh eventsClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=unregister -Dairline=AirCanada
+#sh eventsClient.sh -DserverAddress=$SERVER_ADDRESS -Daction=unregister -Dairline=AirCanada
 
 echo "All tests completed."

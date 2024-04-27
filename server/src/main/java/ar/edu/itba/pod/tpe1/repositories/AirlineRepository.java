@@ -91,4 +91,8 @@ public class AirlineRepository {
 
         return optionalFlight.map(flight -> new Pair<>(flight.getSector(), flight.getCounterStart())).orElse(null);
     }
+
+    public boolean airlineExists(String airlineName) {
+        return airlineFlightCodes.get(airlineName) != null;
+    }
 }
