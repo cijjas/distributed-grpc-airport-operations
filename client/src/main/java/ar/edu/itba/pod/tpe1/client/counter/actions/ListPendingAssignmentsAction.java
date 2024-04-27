@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ListPendingAssignmentsAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
-    private static final String HEADER = String.format("%-10s %-25s %-25s\n", "Counters", "Airline", "Flights");
+    private static final String HEADER = String.format("%-10s %-25s %-25s", "Counters", "Airline", "Flights");
     private static final String HASHTAG_DIVIDER= "#".repeat(55);
 
     public ListPendingAssignmentsAction(ManagedChannel channel, CounterClientArguments arguments) {
@@ -71,7 +71,7 @@ public class ListPendingAssignmentsAction implements Action {
     }
 
     private void printAssignment(PendingAssignment pendingAssignment) {
-        System.out.printf("%-10d %-25s %-25s \n",
+        System.out.printf("%-10d %-25s %-25s %n",
                 pendingAssignment.getCounterCount(),
                 pendingAssignment.getAirlineName(),
                 String.join("|", pendingAssignment.getFlightCodesList()));

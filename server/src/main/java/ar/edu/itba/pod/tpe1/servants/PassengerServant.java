@@ -77,7 +77,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                     .setFlightCode(passengerStatusInfo.getBooking().getFlightCode())
                     .setAirlineName(passengerStatusInfo.getCounterGroup().getAirlineName())
                     .setCounterFrom(passengerStatusInfo.getCounterGroup().getCounterStart())
-                    .setCounterTo(passengerStatusInfo.getCounterGroup().getCounterStart())
+                    .setCounterTo(passengerStatusInfo.getCounterGroup().getCounterStart() + passengerStatusInfo.getCounterGroup().getCounterCount() - 1)
                     .setSectorName(passengerStatusInfo.getSectorName())
                     .setPeopleInLine(passengerStatusInfo.getCounterGroup().getPendingPassengers().size());
 
@@ -87,7 +87,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                         passengerStatusInfo.getBooking().getFlightCode(),
                         passengerStatusInfo.getCounterGroup().getAirlineName(),
                         passengerStatusInfo.getCounterGroup().getCounterStart(),
-                        passengerStatusInfo.getCounterGroup().getCounterStart(),
+                        (passengerStatusInfo.getCounterGroup().getCounterStart() + passengerStatusInfo.getCounterGroup().getCounterCount() - 1),
                         passengerStatusInfo.getSectorName(),
                         passengerStatusInfo.getCounterGroup().getPendingPassengers().size()));
 
@@ -121,7 +121,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                     )
                     .setBookingCode(request.getValue())
                     .setFlightCode(passengerStatusInfo.getBooking().getFlightCode())
-                    .setAirlineName(passengerStatusInfo.getBooking().getAirlineName()) 
+                    .setAirlineName(passengerStatusInfo.getBooking().getAirlineName())
                     .setSectorName(passengerStatusInfo.getSectorName())
                     .setStatus(passengerStatusInfo.getCheckInStatus());
 

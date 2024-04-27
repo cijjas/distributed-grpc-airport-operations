@@ -67,6 +67,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     @Override
     public void listCounters(ListCountersRequest request, StreamObserver<ListCountersResponse> responseObserver) {
         try {
+            // TODO invalid range debería devolver INVALID_ARGUMENT
             SortedMap<Integer, CounterGroup> counters = airportRepository.listCounters(request.getSectorName(), request.getCounterFrom(), request.getCounterTo());
             ListCountersResponse.Builder responseBuilder = ListCountersResponse.newBuilder();
             counters.forEach((counterIndex, counterGroup) -> {
@@ -245,7 +246,8 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             CheckinCountersResponse.Builder responseBuilder = CheckinCountersResponse.newBuilder();
 
             checkins.forEach(supposedBooking -> {
-                        if(supposedBooking.getAirlineName().isEmpty()){
+                 //TODO Cannot invoke "String.isEmpty()" because the return value of "ar.edu.itba.pod.tpe1.models.Booking.BookingHist.getAirlineName()" is null
+                        if(supposedBooking.getAirlineName() == null){
                             responseBuilder.addIdleCounters(
                                     supposedBooking.getCheckinCounter()
                             );
