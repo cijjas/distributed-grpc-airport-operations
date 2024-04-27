@@ -135,7 +135,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
+        assertTrue(exception.getMessage().contains("User checking in"));
     }
 
     @Test
@@ -152,7 +152,7 @@ public class PassengerCheckinTest {
                 () -> airportRepository.passengerCheckin(BOOKING_CODE_1, SECTOR_A, 1),
                 "Expected IllegalArgumentException since user already checked in");
 
-        assertTrue(exception.getMessage().contains("Booking code not found or user checked-in"));
+        assertTrue(exception.getMessage().contains("User checked-in"));
     }
 
     @Test

@@ -215,9 +215,19 @@ public class AirportRepository {
 
         semaphoreAdmin.writeLockBooking(bookingCode);
 
+        if (!passengerRepository.passengerWasRegistered(bookingCode)) {
+            semaphoreAdmin.writeUnlockBooking(bookingCode);
+            throw new IllegalArgumentException("Booking code not found");
+        }
+
+        if (passengerRepository.findCheckedinPassenger(bookingCode) != null) {
+            semaphoreAdmin.writeUnlockBooking(bookingCode);
+            throw new IllegalArgumentException("User checked-in");
+        }
+
         if (!passengerRepository.passengerIsExpected(bookingCode)) {
             semaphoreAdmin.writeUnlockBooking(bookingCode);
-            throw new IllegalArgumentException("Booking code not found or user checked-in");
+            throw new IllegalArgumentException("User checking in");
         }
 
         Booking booking = passengerRepository.getExpectedPassenger(bookingCode);
