@@ -68,7 +68,6 @@ public class RegisterAction implements Action {
 
             @Override
             public void onCompleted() {
-                System.out.println("Unregistered");
                 finishLatch.countDown();
             }
         };

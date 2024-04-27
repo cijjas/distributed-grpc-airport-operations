@@ -193,7 +193,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     @Override
     public void freeCounters(FreeCountersRequest request, StreamObserver<FreeCountersResponse> responseObserver) {
         try {
-            CounterGroup counterGroup = airportRepository.freeCounters(request.getSectorName(), request.getAirlineName(), request.getCounterFrom());
+            CounterGroup counterGroup = airportRepository.freeCounters(request.getSectorName(), request.getAirlineName(), request.getCounterFrom(), eventsServant );
 
             responseObserver.onNext(
                     FreeCountersResponse.newBuilder()

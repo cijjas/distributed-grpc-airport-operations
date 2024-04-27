@@ -14,9 +14,11 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
     private static final Logger log = LoggerFactory.getLogger(AdminServant.class);
     private final AirportRepository airportRepository;
+    private final EventsServant eventsServant;
 
-    public AdminServant(AirportRepository airportRepository) {
+    public AdminServant(AirportRepository airportRepository, EventsServant eventsServant) {
         this.airportRepository = airportRepository;
+        this.eventsServant = eventsServant;
     }
 
     @Override
@@ -50,7 +52,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     public void addCounters(AddCountersRequest request, StreamObserver<AddCountersResponse> responseObserver) {
         try {
             int counterCount = request.getCounterCount();
-            Integer counterId = airportRepository.addCounters(request.getSectorName(), counterCount);
+            Integer counterId = airportRepository.addCounters(request.getSectorName(), counterCount, eventsServant );
             responseObserver.onNext(
                     AddCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()

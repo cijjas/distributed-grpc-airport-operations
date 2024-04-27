@@ -21,9 +21,9 @@ public class Server {
         int port = parsePort(args);
         AirportRepository airportRepository = initializeAirportRepository();
 
-        EventsServant eventsServant = new EventsServant(new ConcurrentHashMap<>());
+        EventsServant eventsServant = new EventsServant(airportRepository, new ConcurrentHashMap<>());
         io.grpc.Server server = ServerBuilder.forPort(port)
-                .addService(new AdminServant(airportRepository))
+                .addService(new AdminServant(airportRepository, eventsServant))
                 .addService(new CounterServant(airportRepository, eventsServant))
                 .addService(new QueryServant(airportRepository))
                 .addService(new PassengerServant(airportRepository, eventsServant))

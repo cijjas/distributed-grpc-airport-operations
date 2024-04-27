@@ -18,11 +18,13 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import ar.edu.itba.pod.tpe1.semaphores.SemaphoreAdministrator;
+import ar.edu.itba.pod.tpe1.servants.EventsServant;
 import lombok.Getter;
 
 public class AirportRepository {
     @Getter
     private final PassengerRepository passengerRepository;
+    @Getter
     private final AirlineRepository airlineRepository;
 
     private final ConcurrentSkipListMap<String, Sector> sectors;
@@ -52,6 +54,10 @@ public class AirportRepository {
     }
 
     public Integer addCounters(String sectorName, int counterCount) {
+        return addCounters(sectorName, counterCount, null);
+    }
+
+    public Integer addCounters(String sectorName, int counterCount, EventsServant eventsServant) {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
 
@@ -61,7 +67,7 @@ public class AirportRepository {
         Sector sector = sectors.get(sectorName);
 
         synchronized (nextAvailableCounterLock) {
-            sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(nextAvailableCounter, counterCount));
+            sector.addCounterGroup(nextAvailableCounter, new UnassignedCounterGroup(nextAvailableCounter, counterCount), eventsServant);
             nextAvailableCounter += counterCount;
 
             return nextAvailableCounter - counterCount;
@@ -150,9 +156,13 @@ public class AirportRepository {
     }
 
     public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom) {
+        return freeCounters(sectorName, airlineName, counterFrom, null);
+    }
+
+    public CounterGroup freeCounters(String sectorName, String airlineName, int counterFrom, EventsServant eventsServant) {
         if (!sectors.containsKey(sectorName))
             throw new IllegalArgumentException("Sector not found");
-        return sectors.get(sectorName).freeCounters(airlineName, counterFrom);
+        return sectors.get(sectorName).freeCounters(airlineName, counterFrom, eventsServant);
     }
 
     public List<BookingHist> checkInCounters(String sectorName, int counterFrom, String airlineName) {

@@ -7,10 +7,12 @@ import ar.edu.itba.pod.tpe1.models.CounterGroup.CheckinAssignment;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.CounterGroup;
 import ar.edu.itba.pod.tpe1.models.CounterGroup.UnassignedCounterGroup;
 import ar.edu.itba.pod.tpe1.repositories.AirlineRepository;
+import ar.edu.itba.pod.tpe1.servants.EventsServant;
 import lombok.Getter;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.IntStream;
 
 @Getter
 public class Sector {
@@ -37,7 +39,7 @@ public class Sector {
         return null;
     }
 
-    public void addCounterGroup(int firstCounter, CounterGroup newCounterGroup) {
+    public void addCounterGroup(int firstCounter, CounterGroup newCounterGroup, EventsServant eventsServant) {
         synchronized (counterGroupMapLock) {
             SortedMap<Integer, CounterGroup> headMap = counterGroupMap.headMap(firstCounter);
 
@@ -59,7 +61,7 @@ public class Sector {
                 counterGroupMap.remove(tailMap.firstKey());
             }
 
-            assignCounterGroupForPendingAssignments();
+            assignCounterGroupForPendingAssignments(eventsServant);
         }
     }
 
@@ -86,16 +88,35 @@ public class Sector {
     }
 
 
-    public void assignCounterGroupForPendingAssignments() {
+    public void assignCounterGroupForPendingAssignments(EventsServant eventsServant) {
         synchronized (counterGroupMapLock) {
             Integer minCountNotAdded = null;
-            for (CheckinAssignment checkinAssignment : pendingAssignmentsList)
-                if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount()) && assignCounterGroupOrEnqueue(checkinAssignment, false).getLeft()) {
-                    pendingAssignmentsList.remove(checkinAssignment);
-                    minCountNotAdded = checkinAssignment.counterCount();
+            boolean removed = false;
+            for (CheckinAssignment checkinAssignment : pendingAssignmentsList) {
+                if ((minCountNotAdded == null || minCountNotAdded > checkinAssignment.counterCount())) {
+                    Pair<Boolean, Integer> assignedData = assignCounterGroupOrEnqueue(checkinAssignment, false);
+                    if (assignedData.getLeft()) {
+                        pendingAssignmentsList.remove(checkinAssignment);
+                        minCountNotAdded = checkinAssignment.counterCount();
+                        removed = true;
+                        if (eventsServant != null) {
+                            eventsServant.notify(checkinAssignment.airlineName(), String.format("%d counters (%d-%d) in Sector %s are now checking in passengers from %s %s flights.",
+                                    checkinAssignment.counterCount(), assignedData.getRight(), assignedData.getRight() + checkinAssignment.counterCount() - 1, name, checkinAssignment.airlineName(), String.join("|", checkinAssignment.flightCodes())));
+                        }
+                    }
                 }
+            }
+
+            if (removed) {
+                IntStream.range(0, pendingAssignmentsList.size()).forEach(i -> {
+                    CheckinAssignment checkinAssignment = pendingAssignmentsList.get(i);
+                    eventsServant.notify(checkinAssignment.airlineName(), String.format("%d counters in Sector %s is pending with %d other pendings ahead.",
+                            checkinAssignment.counterCount(), name, i));
+                });
+            }
         }
     }
+
 
     private void splitUnoccupiedCounter(int firstCount, int counterGroupSize) {
         CounterGroup leftCounterGroup = counterGroupMap.get(firstCount);
@@ -125,7 +146,7 @@ public class Sector {
         }
     }
 
-    public CounterGroup freeCounters(String airlineName, int counterFrom) {
+    public CounterGroup freeCounters(String airlineName, int counterFrom, EventsServant eventsServant) {
         synchronized (counterGroupMapLock) {
             CounterGroup counterGroup = counterGroupMap.get(counterFrom);
 
@@ -142,7 +163,7 @@ public class Sector {
                     throw new IllegalArgumentException("Cannot free counters, there are passengers in line");
                 }
 
-                addCounterGroup(counterFrom, new UnassignedCounterGroup(counterFrom, counterGroup.getCounterCount()));
+                addCounterGroup(counterFrom, new UnassignedCounterGroup(counterFrom, counterGroup.getCounterCount()), eventsServant);
                 return counterGroup;
             }
         }
