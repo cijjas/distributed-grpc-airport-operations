@@ -64,7 +64,7 @@ public class AssignCountersAction implements Action {
     private void handleResponse(AssignCountersResponse response) {
         if (response.getStatus().getCode() == Status.OK.getCode().value()) {
             if(response.hasPendingAssignments()){
-                System.out.printf("%d counters in Sector %s are awaiting assignment. %d assignments are pending.\n",
+                System.out.printf("%d counters in Sector %s is pending with %d other pendings ahead.\n",
                         response.getCounterCount(),
                         response.getSectorName(),
                         response.getPendingAssignments());
