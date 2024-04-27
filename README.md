@@ -17,8 +17,12 @@ Correr el siguiente comando para limpiar y compilar el proyecto:
 ## Instrucciones para Ejecutar el Servidor
 
 1. Navegar hasta el directorio `./resources/scripts`.
+   
    ```cd ./resources/scripts```
+   
 3. Ejecutar el siguiente comando para iniciar el servidor, especificando el puerto deseado con `-Dport=xxxx`:
+
+   
    ```sh server.sh -Dport=XXXXX```
 
 ## Instrucciones para Ejecutar cada Cliente
