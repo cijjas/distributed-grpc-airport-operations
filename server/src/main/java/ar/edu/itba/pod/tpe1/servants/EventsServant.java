@@ -28,7 +28,7 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
         String airlineName = request.getValue();
         subscribers.put(airlineName.toUpperCase(), responseObserver);
         responseObserver.onNext(EventResponse.newBuilder()
-                .setMessage("Registered successfully for " + airlineName)
+                .setMessage(airlineName + " registered successfully for events")
                 .setStatus(
                         StatusResponse.newBuilder()
                                 .setCode(Status.OK.getCode().value())
@@ -46,7 +46,7 @@ public class EventsServant extends EventsServiceGrpc.EventsServiceImplBase {
             observer.onCompleted();  // Close the stream
         }
         responseObserver.onNext(EventResponse.newBuilder()
-                .setMessage("Unregistered successfully for " + airlineName)
+                .setMessage(airlineName + " unregistered successfully for events")
                 .setStatus(StatusResponse.newBuilder()
                         .setCode(Status.OK.getCode().value())
                         .setMessage("Unregistered successfully")
