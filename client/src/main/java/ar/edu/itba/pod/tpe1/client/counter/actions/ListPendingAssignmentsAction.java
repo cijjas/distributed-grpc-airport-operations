@@ -45,8 +45,8 @@ public class ListPendingAssignmentsAction implements Action {
     }
 
     private void printListCountersUsageInstructions() {
-        System.out.println("Invalid or missing parameters for listing counters.");
-        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
+        System.out.println("- ERROR - Invalid or missing parameters for listing counters.");
+        System.out.println("- listPendingAssignments - Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
     }
 
     private void listPendingAssignments(ManagedChannel channel, String sector) {

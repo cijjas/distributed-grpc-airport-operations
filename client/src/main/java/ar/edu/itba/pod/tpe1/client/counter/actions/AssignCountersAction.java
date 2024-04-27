@@ -41,8 +41,8 @@ public class AssignCountersAction implements Action {
     }
 
     private void printAssignCountersUsageInstructions() {
-        System.out.println("Invalid or missing parameters.");
-        System.out.println("Required parameters: -Dsector=<sector> -Dflights=<flights> -Dairline=<airline> -DcounterCount=<count>");
+        System.out.println("- ERROR - Invalid or missing parameters.");
+        System.out.println("- assignCounters - Required parameters: -Dsector=<sector> -Dflights=<flights> -Dairline=<airline> -DcounterCount=<count>");
     }
 
     private void assignCounters(ManagedChannel channel, String sector, List<String> flights, String airline, Integer counterCount) {

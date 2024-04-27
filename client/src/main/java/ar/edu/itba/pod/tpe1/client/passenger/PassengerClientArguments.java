@@ -12,7 +12,7 @@ public class PassengerClientArguments extends Arguments {
     private PassengerClientAction action;
     private String booking;
     private String sector;
-    private Integer counterNumber;
+    private Integer counter;
 
     public Optional<String> getBooking() {
         return Optional.ofNullable(booking);
@@ -20,8 +20,8 @@ public class PassengerClientArguments extends Arguments {
     public Optional<String> getSector() {
         return Optional.ofNullable(sector);
     }
-    public Optional<Integer> getCounterNumber() {
-        return Optional.ofNullable(counterNumber);
+    public Optional<Integer> getCounter() {
+        return Optional.ofNullable(counter);
     }
 
 }

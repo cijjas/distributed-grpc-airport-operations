@@ -48,7 +48,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
             }
 
             responseObserver.onNext(responseBuilder.build());
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     FetchCounterResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -92,7 +92,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                         passengerStatusInfo.getCounterGroup().getPendingPassengers().size()));
 
             responseObserver.onNext(responseBuilder.build());
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     PassengerCheckinResponse.newBuilder()
                             .setStatus(
@@ -121,7 +121,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                     )
                     .setBookingCode(request.getValue())
                     .setFlightCode(passengerStatusInfo.getBooking().getFlightCode())
-                    .setAirlineName(passengerStatusInfo.getCounterGroup().getAirlineName())
+                    .setAirlineName(passengerStatusInfo.getBooking().getAirlineName()) 
                     .setSectorName(passengerStatusInfo.getSectorName())
                     .setStatus(passengerStatusInfo.getCheckInStatus());
 
@@ -136,13 +136,13 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                 responseBuilder.setPeopleInLine(passengerStatusInfo.getCounterGroup().getPendingPassengers().size());
             }
             if (checkInStatus == CheckInStatus.CHECKED_IN) {
-                responseBuilder.setCounterChecked(666/* TODO actual checked-in counter number here */);
+                responseBuilder.setCounterChecked(passengerStatusInfo.getCheckinCounter());
             }
 
             responseObserver.onNext(responseBuilder.build());
 
         }
-        catch   (IllegalArgumentException e) {
+        catch   (Exception e) {
             responseObserver.onNext(
                     PassengerStatusResponse.newBuilder()
                             .setStatusResponse(

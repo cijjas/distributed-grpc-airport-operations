@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 public class UnregisterAction implements Action {
     ManagedChannel channel;
     EventsClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(EventsClient.class);
 
 
     public UnregisterAction(ManagedChannel channel, EventsClientArguments arguments) {
@@ -36,13 +35,13 @@ public class UnregisterAction implements Action {
     }
 
     private void handleError(Exception e) {
-        logger.error("Failed to unregister due to an error: " + e.getMessage(), e);
+        System.out.println("Failed to unregister due to an error: " + e.getMessage());
         printRegistrationUsageInstructions();
     }
 
     private void printRegistrationUsageInstructions() {
-        logger.error("Invalid or missing airline parameter.");
-        logger.error("Required parameter: -Dairline=<airlineName>");
+        System.out.println("- ERROR - Invalid or missing parameters for unregistering airline.");
+        System.out.println("- unregister - Required parameters: -Dairline=<airlineName>");
     }
 
     private void unregister(ManagedChannel channel, String airlineName) {

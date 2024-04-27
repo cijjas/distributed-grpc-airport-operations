@@ -43,8 +43,8 @@ public class CheckinCountersAction implements Action {
     }
 
     private void printCheckinCountersUsageInstructions() {
-        System.out.println("Invalid or missing parameters for check-in operation.");
-        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<counterStartNumber> -Dairline=<airlineName>");
+        System.out.println("- ERROR - Invalid or missing parameters for check-in operation.");
+        System.out.println("- checkinCounters - Required parameters: -Dsector=<sectorName> -DcounterFrom=<counterStartNumber> -Dairline=<airlineName>");
     }
 
     private void checkinCounters(ManagedChannel channel, String sector, Integer counterFrom, String airline) {

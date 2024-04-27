@@ -10,8 +10,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jdk.jfr.Event;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -21,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class RegisterAction implements Action {
     ManagedChannel channel;
     EventsClientArguments arguments;
-    private static final Logger logger = LoggerFactory.getLogger(EventsClient.class);
 
     public RegisterAction(ManagedChannel channel, EventsClientArguments arguments) {
         this.channel = channel;
@@ -42,16 +39,15 @@ public class RegisterAction implements Action {
 
 
     private void handleRegistrationError(Exception e) {
-        logger.error("Failed to register due to an error: " + e.getMessage(), e);
+        System.out.println("Failed to register due to an error: " + e.getMessage());
         printRegistrationUsageInstructions();
     }
 
     private void printRegistrationUsageInstructions() {
-        logger.error("Invalid or missing airline parameter.");
-        logger.error("Required parameter: -Dairline=<airlineName>");
+        System.out.println("- ERROR - Invalid or missing parameters for registering airline.");
+        System.out.println("- register - Required parameters: -Dairline=<airlineName>");
     }
     private void register(ManagedChannel channel, String airlineName) {
-        logger.info("Registering for airline: {}", airlineName);
         EventsServiceGrpc.EventsServiceStub asyncStub = EventsServiceGrpc.newStub(channel);
         final CountDownLatch finishLatch = new CountDownLatch(1);
         StreamObserver<EventResponse> responseObserver = new StreamObserver<EventResponse>() {

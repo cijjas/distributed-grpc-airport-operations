@@ -48,11 +48,9 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
 
     @Override
     public void addCounters(AddCountersRequest request, StreamObserver<AddCountersResponse> responseObserver) {
-        int counterCount = request.getCounterCount();
         try {
-            System.out.println("ADDING COUNTERS");
+            int counterCount = request.getCounterCount();
             Integer counterId = airportRepository.addCounters(request.getSectorName(), counterCount);
-            System.out.println("Added counters: " + counterId + " to " + (counterId + counterCount - 1));
             responseObserver.onNext(
                     AddCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -65,7 +63,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
                             .setLastCounterNumber(counterId + counterCount - 1)
                             .build()
             );
-        } catch (IllegalArgumentException e){
+        } catch (Exception e){
             responseObserver.onNext(
                     AddCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -101,7 +99,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
                                     .setPassenger(request.getPassenger())
                                     .build()
                     );
-                } catch (IllegalArgumentException e) {
+                } catch (Exception e) {
                     responseObserver.onNext(
                             ManifestResponse.newBuilder()
                                     .setStatus(StatusResponse.newBuilder()

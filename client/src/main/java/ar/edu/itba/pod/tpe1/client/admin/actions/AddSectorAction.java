@@ -42,8 +42,8 @@ public class AddSectorAction implements Action {
     }
 
     private void printSectorUsageInstructions() {
-        System.out.println("No valid sector selected.");
-        System.out.println("Please include the argument: -Dsector=<sectorName>");
+        System.out.println("- ERROR - No valid sector selected.");
+        System.out.println("- addSector - Please include the argument: -Dsector=<sectorName>");
     }
 
 

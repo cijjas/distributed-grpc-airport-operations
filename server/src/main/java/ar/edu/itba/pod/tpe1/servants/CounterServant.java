@@ -50,7 +50,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                             .build()
             );
             responseObserver.onNext(responseBuilder.build());
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     ListSectorsResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -104,7 +104,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                             .build()
             );
             responseObserver.onNext(responseBuilder.build());
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     ListCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -139,10 +139,9 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                                 .addAllFlightCodes(request.getFlightCodesList())
                                 .setCounterCount(request.getCounterCount())
                                 .setCounterFrom(assignedCounters.getRight())
-                                .setCounterTo(assignedCounters.getRight() + request.getCounterCount() - 1)// TODO: luca
+                                .setCounterTo(assignedCounters.getRight() + request.getCounterCount() - 1)
                                 .build()
                 );
-//                2 counters (3-4) in Sector C are now checking in passengers from AmericanAirlines AA123|AA124|AA125 flights
                 if(eventsServant.isRegistered(request.getAirlineName()))
                     eventsServant.notify(request.getAirlineName(), String.format("%d counters (%d-%d) in Sector %s are now checking in passengers from %s %s flights",
                         request.getCounterCount(), assignedCounters.getRight(), assignedCounters.getRight() + request.getCounterCount() - 1, request.getSectorName(),request.getAirlineName(), String.join("|", request.getFlightCodesList()) ));
@@ -176,7 +175,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             }
 
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     AssignCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -225,7 +224,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                 });
 
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     FreeCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -277,7 +276,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             );
             responseObserver.onNext(responseBuilder.build());
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     CheckinCountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -306,7 +305,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
                     )
             );
             responseObserver.onNext(responseBuilder.build());
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                 ListPendingAssignmentsResponse.newBuilder()
                         .setStatus(StatusResponse.newBuilder()

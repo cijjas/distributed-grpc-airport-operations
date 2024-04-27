@@ -42,8 +42,8 @@ public class PassengerStatusAction implements Action {
     }
 
     private void printPassengerStatusUsageInstructions() {
-        System.out.println("Invalid or missing booking parameter.");
-        System.out.println("Please ensure you include the parameter: -Dbooking=<bookingCode>");
+        System.out.println("- ERROR - Invalid or missing booking parameter.");
+        System.out.println("- passengerStatus - Please ensure you include the parameter: -Dbooking=<bookingCode>");
     }
 
     private void passengerStatus(ManagedChannel channel, String booking) {

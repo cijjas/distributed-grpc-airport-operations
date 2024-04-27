@@ -37,8 +37,8 @@ public class ListSectorsAction implements Action {
     }
 
     private void printGeneralHelpInstructions() {
-        System.out.println("This operation does not require parameters.");
-        System.out.println("Please ensure your network connection and server are functioning properly.");
+        System.out.println("- ERROR - This operation does not require parameters.");
+        System.out.println("- listSectors - Please ensure your network connection and server are functioning properly.");
     }
 
 

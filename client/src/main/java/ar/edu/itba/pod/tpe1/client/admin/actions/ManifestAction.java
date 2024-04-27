@@ -45,8 +45,8 @@ public class ManifestAction implements Action {
     }
 
     private void printManifestUsageInstructions() {
-        System.out.println("No valid path selected.");
-        System.out.println("Please include the argument: -DinPath=<pathToFile>");
+        System.out.println("- ERROR - No valid path selected.");
+        System.out.println("- manifest - Please include the argument: -DinPath=<pathToFile>");
     }
 
 

@@ -47,8 +47,8 @@ public class FetchCounterAction implements Action {
     }
 
     private void printFetchCounterUsageInstructions() {
-        System.out.println("Invalid or missing booking parameter.");
-        System.out.println("Please ensure you include the parameter: -Dbooking=<bookingCode>");
+        System.out.println("- ERROR - Invalid or missing booking parameter.");
+        System.out.println("- fetchCounter - Please ensure you include the parameter: -Dbooking=<bookingCode>");
     }
     private void fetchCounter(ManagedChannel channel, String booking) {
         PassengerServiceGrpc.PassengerServiceBlockingStub stub = PassengerServiceGrpc.newBlockingStub(channel);

@@ -47,9 +47,9 @@ public class CheckinsAction implements Action {
     }
 
     private void printCheckinsUsageInstructions() {
-        System.out.println("Invalid or missing output path parameter.");
-        System.out.println("Required parameter: -DoutPath=<outputPath>");
-        System.out.println("Optional parameters: -Dsector=<sectorName> (default: all sectors), -Dairline=<airlineName> (default: all airlines)");
+        System.out.println("- ERROR - Invalid or missing output path parameter.");
+        System.out.println("- checkins - Required parameter: -DoutPath=<outputPath>");
+        System.out.println("- checkins - Optional parameters: -Dsector=<sectorName> (default: all sectors), -Dairline=<airlineName> (default: all airlines)");
     }
 
     private void checkins(ManagedChannel channel, String sectorName, String airlineName, Path outPath) {

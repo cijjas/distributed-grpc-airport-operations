@@ -37,8 +37,8 @@ public class AddCountersAction implements Action {
     }
 
     private void printUsageInstructions() {
-        System.out.println("No valid sector or counter count selected.");
-        System.out.println("Please ensure to include arguments: -Dsector=<sectorName> -Dcounters=<counterAmount>");
+        System.out.println("- ERROR - No valid sector or counter count selected.");
+        System.out.println("- addCounters - Please ensure to include arguments: -Dsector=<sectorName> -Dcounters=<counterAmount>");
     }
 
     private static void addCounters(ManagedChannel channel, String sector, Integer counterCount) {

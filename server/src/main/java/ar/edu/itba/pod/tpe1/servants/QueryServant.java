@@ -65,7 +65,7 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
                             .addAllCounters(counterGroupsList)
                             .build()
             );
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     CountersResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()
@@ -99,7 +99,7 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
                             .addAllCheckins(checkins)
                     .build()
             );
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             responseObserver.onNext(
                     CheckinsResponse.newBuilder()
                             .setStatus(StatusResponse.newBuilder()

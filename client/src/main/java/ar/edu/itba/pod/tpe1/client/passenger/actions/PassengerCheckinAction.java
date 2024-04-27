@@ -27,9 +27,9 @@ public class PassengerCheckinAction implements Action {
 
     @Override
     public void execute() {
-        if (arguments.getBooking().isPresent() && arguments.getSector().isPresent() && arguments.getCounterNumber().isPresent()) {
+        if (arguments.getBooking().isPresent() && arguments.getSector().isPresent() && arguments.getCounter().isPresent()) {
             try {
-                passengerCheckin(channel, arguments.getBooking().get(), arguments.getSector().get(), arguments.getCounterNumber().get());
+                passengerCheckin(channel, arguments.getBooking().get(), arguments.getSector().get(), arguments.getCounter().get());
             } catch (Exception e) {
                 handleCheckinError(e);
             }
@@ -45,8 +45,8 @@ public class PassengerCheckinAction implements Action {
     }
 
     private void printCheckinUsageInstructions() {
-        System.out.println("Invalid or missing parameters for checking in.");
-        System.out.println("Required parameters: -Dbooking=<bookingCode> -Dsector=<sectorName> -DcounterNumber=<counterNumber>");
+        System.out.println("- ERROR - Invalid or missing parameters for checking in.");
+        System.out.println("- passengerCheckin - Required parameters: -Dbooking=<bookingCode> -Dsector=<sectorName> -Dcounter=<counterNumber>");
     }
 
     private void passengerCheckin(ManagedChannel channel, String booking, String sector, int counterNumber) {

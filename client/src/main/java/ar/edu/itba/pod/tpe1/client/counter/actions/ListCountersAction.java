@@ -19,7 +19,7 @@ public class ListCountersAction implements Action {
     ManagedChannel channel;
     CounterClientArguments arguments;
     private static final String HEADER = String.format("%-15s %-25s %-25s %-10s\n", "Counters", "Airline", "Flights", "People");
-    private static final String HASHTAG_DIVIDER= "#".repeat(60);
+    private static final String HASHTAG_DIVIDER= "#".repeat(75);
 
     public ListCountersAction(ManagedChannel channel,CounterClientArguments arguments) {
         this.channel = channel;
@@ -45,8 +45,8 @@ public class ListCountersAction implements Action {
     }
 
     private void printListCountersUsageInstructions() {
-        System.out.println("Invalid or missing parameters for listing counters.");
-        System.out.println("Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
+        System.out.println("- ERROR - Invalid or missing parameters for listing counters.");
+        System.out.println("- listCounters - Required parameters: -Dsector=<sectorName> -DcounterFrom=<startingCounterNumber> -DcounterTo=<endingCounterNumber>");
     }
 
     private void listCounters(ManagedChannel channel, String sector, Integer counterFrom, Integer counterTo) {
@@ -73,7 +73,6 @@ public class ListCountersAction implements Action {
             System.out.println(response.getStatus().getMessage());
         }
     }
-    // TODO: estetic code
     private void printCounters(ListCountersResponse response) {
         System.out.printf(HEADER);
         System.out.println(HASHTAG_DIVIDER);

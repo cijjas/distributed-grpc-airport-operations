@@ -40,7 +40,7 @@ public class CountersAction implements Action {
 
                 counters(channel, sectorArgument, arguments.getOutPath().get());
             } catch (Exception e) {
-                System.out.println("An error occurred getting the counters data");
+                handleCountersError(e);
             }
         }
         else{
@@ -56,9 +56,9 @@ public class CountersAction implements Action {
     }
 
     private void printCountersUsageInstructions() {
-        System.out.println("Invalid or missing output path parameter.");
-        System.out.println("Required parameter: -DoutPath=<outputPath>");
-        System.out.println("Optional parameters: -Dsector=<sectorName> (default: all sectors), -Dairline=<airlineName> (default: all airlines)");
+        System.out.println("- ERROR - Invalid or missing output path parameter.");
+        System.out.println("- counters - Required parameter: -DoutPath=<outputPath>");
+        System.out.println("- counters - Optional parameters: -Dsector=<sectorName> (default: all sectors)");
     }
 
     private void counters(ManagedChannel channel, String sectorName, Path outPath) {
