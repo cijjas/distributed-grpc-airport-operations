@@ -2,15 +2,15 @@
 # TPE1 - POD - Grupo 7
 
 #### Índice
-[Integrantes del Grupo](#integrantes-del-grupo)
-[Instrucciones para Compilar](#instrucciones-para-compilar)
-[Instrucciones para Ejecutar el Servidor](#instrucciones-para-ejecutar-el-servidor)
-[Instrucciones para Ejecutar cada Cliente](#instrucciones-para-ejecutar-cada-cliente)
-- [Admin Client](#admin-client)
-- [Counter Client](#counter-client)
-- [Passenger Client](#passenger-client)
-- [Events Client](#events-client)
-- [Query Client](#query-client)
+- [Integrantes del Grupo](#integrantes-del-grupo)
+- [Instrucciones para Compilar](#instrucciones-para-compilar)
+- [Instrucciones para Ejecutar el Servidor](#instrucciones-para-ejecutar-el-servidor)
+- [Instrucciones para Ejecutar cada Cliente](#instrucciones-para-ejecutar-cada-cliente)
+   - [Admin Client](#admin-client)
+   - [Counter Client](#counter-client)
+   - [Passenger Client](#passenger-client)
+   - [Events Client](#events-client)
+   - [Query Client](#query-client)
 
 ## Integrantes del Grupo
 - [Christian Ijjas](https://github.com/cijjas) - Legajo: 63555
