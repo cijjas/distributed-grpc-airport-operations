@@ -70,9 +70,8 @@ public class Server {
                 }
             }
         }
-        logger.error("No port number provided. Please specify the port using -Dport=<portNumber>");
-        System.exit(1);
-        return -1;
+        logger.info("No port number provided. Defaulting to port 50051.");
+        return 50051;
     }
 
 
