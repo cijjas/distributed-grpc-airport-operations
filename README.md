@@ -1,7 +1,8 @@
 
 # TPE1 - POD - Grupo 7
 
-- [[#Integrantes del Grupo|Integrantes del Grupo]]
+- [Integrantes del Grupo](#integrantes-del-grupo)
+
 - [[#Instrucciones para Compilar|Instrucciones para Compilar]]
 - [[#Instrucciones para Ejecutar el Servidor|Instrucciones para Ejecutar el Servidor]]
 - [[#Instrucciones para Ejecutar cada Cliente|Instrucciones para Ejecutar cada Cliente]]
