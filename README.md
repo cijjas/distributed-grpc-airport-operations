@@ -20,7 +20,7 @@
 
 ## Instrucciones para Compilar
 
-Para compilar el proyecto utilizando Maven, se debe de tener instalado Maven y Java JDK 22.0.1 en el sistema. 
+Para compilar el proyecto utilizando Maven, se debe de tener instalado Maven y Java mayor a 17 en el sistema. 
 
 Correr el siguiente comando en la raíz para limpiar y compilar el proyecto:
    ```mvn clean package```
