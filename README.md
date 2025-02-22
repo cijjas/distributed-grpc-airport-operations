@@ -1,5 +1,5 @@
 
-# TPE1 - POD - Grupo 7
+# Distributed Grpc Airport Operations - TPE1 - POD - Grupo 7
 
 #### Índice
 - [Integrantes del Grupo](#integrantes-del-grupo)
@@ -52,7 +52,7 @@ sh [adminClient.sh | counterClient.sh | passengerClient.sh | eventsClient.sh | q
 donde las acciones y los parametros adicionales dependen del cliente al cual se está invocando. Se puede observar en detalle por cliente:
 ### Admin Client
 ```sh
-sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=actionName [ -Dsector=sectorName | -Dcounters=counterCount | -DinPath=manifestPath ]
+sh adminClient.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=actionName [ -Dsector=sectorName | -Dcounters=counterCount | -DinPath=manifesath ]
 ```
 
 | Parameter    | Options                                | Description                                             |
